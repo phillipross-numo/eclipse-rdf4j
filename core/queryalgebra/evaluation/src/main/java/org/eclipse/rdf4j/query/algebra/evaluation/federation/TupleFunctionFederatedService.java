@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.federation;
 
@@ -15,7 +18,6 @@ import java.util.Set;
 import org.eclipse.rdf4j.common.iteration.AbstractCloseableIteration;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.DistinctIteration;
-import org.eclipse.rdf4j.common.iteration.EmptyIteration;
 import org.eclipse.rdf4j.common.iteration.SilentIteration;
 import org.eclipse.rdf4j.common.iteration.SingletonIteration;
 import org.eclipse.rdf4j.common.iteration.UnionIteration;
@@ -30,6 +32,7 @@ import org.eclipse.rdf4j.query.algebra.ValueConstant;
 import org.eclipse.rdf4j.query.algebra.ValueExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryEvaluationStep;
 import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.TupleFunction;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.TupleFunctionRegistry;
@@ -71,7 +74,7 @@ public class TupleFunctionFederatedService implements FederatedService {
 	public boolean ask(Service service, BindingSet bindings, String baseUri) throws QueryEvaluationException {
 		try (final CloseableIteration<BindingSet, QueryEvaluationException> iter = evaluate(service,
 				new SingletonIteration<>(bindings), baseUri)) {
-			while (iter.hasNext()) {
+			if (iter.hasNext()) {
 				BindingSet bs = iter.next();
 				String firstVar = service.getBindingNames().iterator().next();
 				return QueryEvaluationUtil.getEffectiveBooleanValue(bs.getValue(firstVar));
@@ -85,12 +88,12 @@ public class TupleFunctionFederatedService implements FederatedService {
 			final Set<String> projectionVars, BindingSet bindings, String baseUri) throws QueryEvaluationException {
 		final CloseableIteration<BindingSet, QueryEvaluationException> iter, eval;
 		eval = evaluate(service, new SingletonIteration<>(bindings), baseUri);
-		iter = service.isSilent() ? new SilentIteration<BindingSet, QueryEvaluationException>(eval) : eval;
+		iter = service.isSilent() ? new SilentIteration<>(eval) : eval;
 		if (service.getBindingNames().equals(projectionVars)) {
 			return iter;
 		}
 
-		return new AbstractCloseableIteration<BindingSet, QueryEvaluationException>() {
+		return new AbstractCloseableIteration<>() {
 
 			@Override
 			public boolean hasNext() throws QueryEvaluationException {
@@ -137,12 +140,8 @@ public class TupleFunctionFederatedService implements FederatedService {
 			}
 
 			@Override
-			public void handleClose() throws QueryEvaluationException {
-				try {
-					super.handleClose();
-				} finally {
-					iter.close();
-				}
+			protected void handleClose() throws QueryEvaluationException {
+				iter.close();
 			}
 		};
 	}
@@ -152,12 +151,12 @@ public class TupleFunctionFederatedService implements FederatedService {
 			CloseableIteration<BindingSet, QueryEvaluationException> bindings, String baseUri)
 			throws QueryEvaluationException {
 		if (!bindings.hasNext()) {
-			return new EmptyIteration<>();
+			return QueryEvaluationStep.EMPTY_ITERATION;
 		}
 
 		TupleExpr expr = service.getArg();
 		if (!(expr instanceof TupleFunctionCall)) {
-			return new EmptyIteration<>();
+			return QueryEvaluationStep.EMPTY_ITERATION;
 		}
 
 		TupleFunctionCall funcCall = (TupleFunctionCall) expr;

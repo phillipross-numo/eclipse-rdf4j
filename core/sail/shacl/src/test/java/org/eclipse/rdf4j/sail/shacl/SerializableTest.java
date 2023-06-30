@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2019 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl;
@@ -27,7 +30,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
-import org.eclipse.rdf4j.sail.Sail;
 import org.eclipse.rdf4j.sail.shacl.results.ValidationReport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -41,8 +43,7 @@ public class SerializableTest {
 		for (int i = 0; i < 10; i++) {
 			SailRepository repo = Utils.getInitializedShaclRepository("shaclMax.trig");
 
-			Sail sail = repo.getSail();
-//			((ShaclSail) sail).setGlobalLogValidationExecution(true);
+//			((ShaclSail) repo.getSail()).setGlobalLogValidationExecution(true);
 
 			multithreadedMaxCountViolation(IsolationLevels.SNAPSHOT, repo);
 

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.model.impl;
 
@@ -49,6 +52,8 @@ public class SimpleLiteral extends AbstractLiteral {
 	 * The literal's language tag.
 	 */
 	private String language;
+	// Cache Optional instance for the language, or null if not yet computed. Marked as transient because Optional is
+	// not serializable.
 	transient private Optional<String> optionalLanguageCache = null;
 
 	/**
@@ -56,6 +61,7 @@ public class SimpleLiteral extends AbstractLiteral {
 	 */
 	private IRI datatype;
 
+	// Cached CoreDatatype, or null if not yet computed.
 	private CoreDatatype coreDatatype = null;
 
 	/*--------------*
@@ -215,8 +221,8 @@ public class SimpleLiteral extends AbstractLiteral {
 	}
 
 	/**
-	 * @deprecated Use {@link #getCoreDatatype()} instead.
 	 * @return
+	 * @deprecated Use {@link #getCoreDatatype()} instead.
 	 */
 	@Deprecated(since = "4.0.0", forRemoval = true)
 	public Optional<XSD.Datatype> getXsdDatatype() {

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * .Copyright (c) 2020 Eclipse RDF4J contributors.
+ * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.planNodes;
@@ -30,6 +33,7 @@ public abstract class FilterPlanNode implements MultiStreamPlanNode, PlanNode {
 
 	private CloseableIteration<ValidationTuple, SailException> iterator;
 	private ValidationExecutionLogger validationExecutionLogger;
+	private boolean closed;
 
 	abstract boolean checkTuple(ValidationTuple t);
 
@@ -75,7 +79,7 @@ public abstract class FilterPlanNode implements MultiStreamPlanNode, PlanNode {
 
 		return new CloseableIteration<>() {
 
-			CloseableIteration<? extends ValidationTuple, SailException> parentIterator;
+			private CloseableIteration<? extends ValidationTuple, SailException> parentIterator;
 
 			ValidationTuple next;
 
@@ -198,14 +202,18 @@ public abstract class FilterPlanNode implements MultiStreamPlanNode, PlanNode {
 	@Override
 	public void close() {
 		if ((trueNode == null || trueNode.isClosed()) && (falseNode == null || falseNode.isClosed())) {
-			iterator.close();
-			iterator = null;
+			if (iterator != null) {
+				iterator.close();
+				iterator = null;
+				closed = true;
+			}
 		}
 
 	}
 
 	@Override
 	public boolean incrementIterator() {
+		assert !closed;
 		if (iterator.hasNext()) {
 			iterator.next();
 			return true;

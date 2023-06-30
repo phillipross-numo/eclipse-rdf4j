@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.http.client;
 
@@ -119,10 +122,9 @@ public class RDF4JProtocolSession extends SPARQLProtocolSession {
 	private long pingDelay = PINGDELAY;
 
 	/**
-	 *
-	 * @deprecated since 3.6.2 - use {@link #RDF4JProtocolSession(HttpClient, ExecutorService)} instead
+	 * @deprecated Use {@link #RDF4JProtocolSession(HttpClient, ExecutorService)} instead
 	 */
-	@Deprecated
+	@Deprecated(since = "3.6.2")
 	public RDF4JProtocolSession(HttpClient client, ScheduledExecutorService executor) {
 		this(client, (ExecutorService) executor);
 	}
@@ -410,7 +412,6 @@ public class RDF4JProtocolSession extends SPARQLProtocolSession {
 	 * @throws RDFHandlerException
 	 * @throws QueryInterruptedException
 	 * @throws UnauthorizedException
-	 *
 	 * @since 3.1.0
 	 */
 	public void getRepositoryConfig(StatementCollector statementCollector) throws UnauthorizedException,
@@ -837,13 +838,13 @@ public class RDF4JProtocolSession extends SPARQLProtocolSession {
 	/**
 	 * Sends a transaction list as serialized XML to the server.
 	 *
-	 * @deprecated since 2.8.0
 	 * @param txn
 	 * @throws IOException
 	 * @throws RepositoryException
 	 * @throws UnauthorizedException
+	 * @deprecated since 2.8.0
 	 */
-	@Deprecated
+	@Deprecated(since = "2.8.0")
 	public void sendTransaction(final Iterable<? extends TransactionOperation> txn)
 			throws IOException, RepositoryException, UnauthorizedException {
 		checkRepositoryURL();

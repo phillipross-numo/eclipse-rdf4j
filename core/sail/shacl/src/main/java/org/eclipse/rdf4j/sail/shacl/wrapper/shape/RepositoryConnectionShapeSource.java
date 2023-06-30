@@ -1,11 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2022 Eclipse RDF4J contributors.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Distribution License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/org/documents/edl-v10.php.
- ******************************************************************************/
-
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 package org.eclipse.rdf4j.sail.shacl.wrapper.shape;
 
 import java.util.stream.Collectors;
@@ -15,6 +17,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.DASH;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
@@ -57,15 +60,6 @@ public class RepositoryConnectionShapeSource implements ShapeSource {
 
 	}
 
-	private Stream<Resource> getContext(Predicates predicate) {
-		assert context == null;
-
-		return connection.getStatements(null, predicate.getIRI(), null, true)
-				.stream()
-				.map(Statement::getContext)
-				.distinct();
-	}
-
 	public Stream<Resource> getTargetableShape() {
 		assert context != null;
 		return Stream
@@ -78,8 +72,38 @@ public class RepositoryConnectionShapeSource implements ShapeSource {
 	}
 
 	public boolean isType(Resource subject, IRI type) {
-		assert context != null;
-		return connection.hasStatement(subject, RDF.TYPE, type, true, context);
+		if (DASH_CONSTANTS.contains(subject, RDF.TYPE, type)
+				|| connection.hasStatement(subject, RDF.TYPE, type, true, context)) {
+			return true;
+		}
+		if (!(type == SHACL.NODE_SHAPE || type == SHACL.PROPERTY_SHAPE)) {
+			if (type.equals(SHACL.NODE_SHAPE)) {
+				type = SHACL.NODE_SHAPE;
+			} else if (type.equals(SHACL.PROPERTY_SHAPE)) {
+				type = SHACL.PROPERTY_SHAPE;
+			}
+		}
+
+		if (type == SHACL.PROPERTY_SHAPE) {
+			return connection.hasStatement(subject, SHACL.PATH, null, true, context);
+		} else if (type == SHACL.NODE_SHAPE) {
+			if (connection.hasStatement(subject, SHACL.PATH, null, true, context)) {
+				return false;
+			}
+			if (connection.hasStatement(null, SHACL.NODE, subject, true, context)) {
+				return true;
+			}
+			try (Stream<? extends Statement> stream = connection.getStatements(subject, null, null, true, context)
+					.stream()) {
+				return stream
+						.map(Statement::getPredicate)
+						.map(Value::stringValue)
+						.anyMatch(predicate -> predicate.startsWith(SHACL.NAMESPACE)
+								|| predicate.startsWith(DASH.NAMESPACE));
+			}
+		} else {
+			return false;
+		}
 	}
 
 	public Stream<Resource> getSubjects(Predicates predicate) {
@@ -107,30 +131,11 @@ public class RepositoryConnectionShapeSource implements ShapeSource {
 	}
 
 	public Value getRdfFirst(Resource subject) {
-		assert context != null;
-
-		try (Stream<Statement> stream = connection.getStatements(subject, RDF.FIRST, null, true, context).stream()) {
-			return stream
-					.map(Statement::getObject)
-					.findAny()
-					.orElse(null);
-		}
-		// .orElseThrow(() -> new IllegalStateException("Corrupt rdf:list at rdf:first: " + subject));
+		return ShapeSourceHelper.getFirst(connection, subject, context);
 	}
 
 	public Resource getRdfRest(Resource subject) {
-		assert context != null;
-
-		Value value;
-		try (Stream<Statement> stream = connection.getStatements(subject, RDF.REST, null, true, context).stream()) {
-			value = stream
-					.map(Statement::getObject)
-					.findAny()
-					.orElse(null);
-		}
-		// .orElseThrow(() -> new IllegalStateException("Corrupt rdf:list at rdf:rest: " + subject));
-
-		return ((Resource) value);
+		return ShapeSourceHelper.getRdfRest(connection, subject, context);
 	}
 
 	@Override

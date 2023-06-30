@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.spring.demo;
@@ -23,7 +26,7 @@ import org.springframework.core.io.Resource;
 
 /**
  * Spring config for the demo.
- *
+ * <p>
  * Here is what it does:
  *
  * <ul>
@@ -34,11 +37,11 @@ import org.springframework.core.io.Resource;
  * <li>it configures the 'data inserter' beans, which read data from the 'artists.ttl' file and adds them to the
  * repository at startup</li>
  * </ul>
- *
+ * <p>
  * See {@link org.eclipse.rdf4j.spring Rdf4J-Spring} for an overview and more pointers.
  *
- * @since 4.0.0
  * @author Florian Kleedorfer
+ * @since 4.0.0
  */
 @Configuration
 @Import(RDF4JConfig.class)

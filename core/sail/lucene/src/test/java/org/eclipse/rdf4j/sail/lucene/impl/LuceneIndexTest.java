@@ -1,23 +1,27 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.lucene.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -44,9 +48,9 @@ import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.lucene.LuceneSail;
 import org.eclipse.rdf4j.sail.lucene.SearchFields;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class LuceneIndexTest {
 
@@ -104,14 +108,14 @@ public class LuceneIndexTest {
 
 	LuceneIndex index;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		directory = new RAMDirectory();
 		analyzer = new StandardAnalyzer();
 		index = new LuceneIndex(directory, analyzer);
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 		index.shutDown();
 		Properties.setLockTrackingEnabled(false);
@@ -398,10 +402,23 @@ public class LuceneIndexTest {
 		Literal literal2 = vf.createLiteral("hi there, too", STRING);
 		Literal literal3 = vf.createLiteral("1.0");
 		Literal literal4 = vf.createLiteral("1.0", FLOAT);
-		assertEquals("Is the first literal accepted?", true, index.accept(literal1));
-		assertEquals("Is the second literal accepted?", true, index.accept(literal2));
-		assertEquals("Is the third literal accepted?", true, index.accept(literal3));
-		assertEquals("Is the fourth literal accepted?", false, index.accept(literal4));
+		assertEquals(true, index.accept(literal1), "Is the first literal accepted?");
+		assertEquals(true, index.accept(literal2), "Is the second literal accepted?");
+		assertEquals(true, index.accept(literal3), "Is the third literal accepted?");
+		assertEquals(false, index.accept(literal4), "Is the fourth literal accepted?");
+	}
+
+	@Test
+	public void testInstantiatesCustomQueryAnalyzer() throws Exception {
+		LuceneIndex index = new LuceneIndex();
+		java.util.Properties props = new java.util.Properties();
+		props.put(LuceneSail.QUERY_ANALYZER_CLASS_KEY, EnglishAnalyzer.class.getName());
+		props.put(LuceneSail.ANALYZER_CLASS_KEY, EnglishAnalyzer.class.getName());
+		props.put(LuceneSail.LUCENE_RAMDIR_KEY, "true");
+		index.initialize(props);
+
+		assertTrue(index.getAnalyzer() instanceof EnglishAnalyzer);
+		assertTrue(index.getQueryAnalyzer() instanceof EnglishAnalyzer);
 	}
 
 	private void assertStatement(Statement statement) throws Exception {
@@ -426,7 +443,7 @@ public class LuceneIndexTest {
 	 */
 	private void assertStatement(Statement statement, Document document) {
 		IndexableField[] fields = document.getFields(SearchFields.getPropertyField(statement.getPredicate()));
-		assertNotNull("field " + statement.getPredicate() + " not found in document " + document, fields);
+		assertNotNull(fields, "field " + statement.getPredicate() + " not found in document " + document);
 		for (IndexableField f : fields) {
 			if (((Literal) statement.getObject()).getLabel().equals(f.stringValue())) {
 				return;

@@ -1,12 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.query.algebra.evaluation;
+
+import java.util.function.Function;
 
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -72,6 +77,43 @@ public interface QueryValueEvaluationStep {
 		@Override
 		public Value evaluate(BindingSet bindings) throws QueryEvaluationException {
 			return strategy.evaluate(ve, bindings);
+		}
+	}
+
+	/**
+	 * A minimal implementation that falls is known to throw an ValueExprEvaluationException. This can't be a constant
+	 * as the downstream code needs to catch and deal with it and that needs re-evaluation.
+	 */
+	public static final class Fail implements QueryValueEvaluationStep {
+
+		private final String message;
+
+		public Fail(String message) {
+			super();
+			this.message = message;
+		}
+
+		@Override
+		public Value evaluate(BindingSet bindings) throws ValueExprEvaluationException, QueryEvaluationException {
+			throw new ValueExprEvaluationException(message);
+		}
+	}
+
+	/**
+	 * A minimal implementation that falls calls a function that should return a value per passed in bindingsets.
+	 */
+	public static final class ApplyFunctionForEachBinding implements QueryValueEvaluationStep {
+
+		private final Function<BindingSet, Value> function;
+
+		public ApplyFunctionForEachBinding(Function<BindingSet, Value> function) {
+			super();
+			this.function = function;
+		}
+
+		@Override
+		public Value evaluate(BindingSet bindings) throws ValueExprEvaluationException, QueryEvaluationException {
+			return function.apply(bindings);
 		}
 	}
 }

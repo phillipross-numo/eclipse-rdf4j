@@ -1,9 +1,12 @@
 /*******************************************************************************
- * .Copyright (c) 2020 Eclipse RDF4J contributors.
+ * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.planNodes;
@@ -52,11 +55,15 @@ public class UnBufferedPlanNode<T extends PlanNode & MultiStreamPlanNode> implem
 
 			@Override
 			public boolean hasNext() throws SailException {
+				if (closed) {
+					return false;
+				}
 				calculateNext();
 				return next != null;
 			}
 
 			private void calculateNext() {
+				assert !closed;
 				while (next == null) {
 					boolean success = parent.incrementIterator();
 					if (!success) {
@@ -123,7 +130,7 @@ public class UnBufferedPlanNode<T extends PlanNode & MultiStreamPlanNode> implem
 
 	@Override
 	public String toString() {
-		return "UnBufferedPlanNode";
+		return "UnBufferedPlanNode(" + parent.getClass().getSimpleName() + ")";
 	}
 
 	@Override

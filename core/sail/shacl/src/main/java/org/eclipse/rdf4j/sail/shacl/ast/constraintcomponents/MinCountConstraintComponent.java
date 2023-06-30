@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.constraintcomponents;
@@ -17,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
@@ -66,10 +70,7 @@ public class MinCountConstraintComponent extends AbstractConstraintComponent {
 
 		StatementMatcher.StableRandomVariableProvider stableRandomVariableProvider = new StatementMatcher.StableRandomVariableProvider();
 
-		PlanNode target = getTargetChain()
-				.getEffectiveTarget(scope, connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider)
-				.getPlanNode(connectionsGroup, validationSettings.getDataGraph(), scope, true, null);
-
+		PlanNode target;
 		if (overrideTargetNode != null) {
 			target = getTargetChain()
 					.getEffectiveTarget(scope, connectionsGroup.getRdfsSubClassOfReasoner(),
@@ -77,13 +78,25 @@ public class MinCountConstraintComponent extends AbstractConstraintComponent {
 					.extend(overrideTargetNode.getPlanNode(), connectionsGroup, validationSettings.getDataGraph(),
 							scope, EffectiveTarget.Extend.right,
 							false, null);
+			if (connectionsGroup.hasAddedStatements()) {
+				PlanNode addedByPath = getTargetChain().getPath()
+						.get()
+						.getAnyAdded(connectionsGroup, validationSettings.getDataGraph(), null);
+				LeftOuterJoin leftOuterJoin = new LeftOuterJoin(target, addedByPath);
+				target = new GroupByCountFilter(leftOuterJoin, count -> count < minCount);
+			}
 		} else {
 			// we can assume that we are not doing bulk validation, so it is worth checking our added statements before
 			// we go to the base sail
 
+			target = getTargetChain()
+					.getEffectiveTarget(scope, connectionsGroup.getRdfsSubClassOfReasoner(),
+							stableRandomVariableProvider)
+					.getPlanNode(connectionsGroup, validationSettings.getDataGraph(), scope, true, null);
+
 			PlanNode addedByPath = getTargetChain().getPath()
 					.get()
-					.getAdded(connectionsGroup, validationSettings.getDataGraph(), null);
+					.getAnyAdded(connectionsGroup, validationSettings.getDataGraph(), null);
 			LeftOuterJoin leftOuterJoin = new LeftOuterJoin(target, addedByPath);
 			target = new GroupByCountFilter(leftOuterJoin, count -> count < minCount);
 		}
@@ -94,12 +107,12 @@ public class MinCountConstraintComponent extends AbstractConstraintComponent {
 				validationSettings.getDataGraph(), getTargetChain().getPath()
 						.get()
 						.getTargetQueryFragment(new StatementMatcher.Variable("a"), new StatementMatcher.Variable("c"),
-								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider),
-				false,
-				null,
+								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider, Set.of()),
 				(b) -> new ValidationTuple(b.getValue("a"), b.getValue("c"), scope, true,
 						validationSettings.getDataGraph())
 		);
+
+		relevantTargetsWithPath = connectionsGroup.getCachedNodeFor(relevantTargetsWithPath);
 
 		PlanNode groupByCount = new GroupByCountFilter(relevantTargetsWithPath, count -> count < minCount);
 
@@ -136,10 +149,11 @@ public class MinCountConstraintComponent extends AbstractConstraintComponent {
 
 			String pathQuery = getTargetChain().getPath()
 					.map(p -> p.getTargetQueryFragment(effectiveTarget.getTargetVar(), value,
-							connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider))
-					.orElseThrow(IllegalStateException::new);
+							connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider, Set.of()))
+					.orElseThrow(IllegalStateException::new)
+					.getFragment();
 
-			query += "\nFILTER(NOT EXISTS{" + pathQuery + "})";
+			query += "\nFILTER(NOT EXISTS{\n" + pathQuery + "\n})";
 		} else {
 
 			StringBuilder condition = new StringBuilder();
@@ -151,8 +165,9 @@ public class MinCountConstraintComponent extends AbstractConstraintComponent {
 
 				String pathQuery = getTargetChain().getPath()
 						.map(p -> p.getTargetQueryFragment(effectiveTarget.getTargetVar(), value,
-								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider))
-						.orElseThrow(IllegalStateException::new);
+								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider, Set.of()))
+						.orElseThrow(IllegalStateException::new)
+						.getFragment();
 
 				condition.append(pathQuery).append("\n");
 			}
@@ -176,12 +191,13 @@ public class MinCountConstraintComponent extends AbstractConstraintComponent {
 
 			String innerCondition = String.join(" && ", notEquals);
 
-			query += "\nFILTER(NOT EXISTS{" + condition + "FILTER(" + innerCondition + ")\n})";
+			query += "\nFILTER(NOT EXISTS{\n" + condition.toString().trim() + "\nFILTER(" + innerCondition + ")\n})";
 		}
 
-		List<StatementMatcher.Variable> allTargetVariables = effectiveTarget.getAllTargetVariables();
+		var allTargetVariables = effectiveTarget.getAllTargetVariables();
 
-		return new ValidationQuery(query, allTargetVariables, null, scope, getConstraintComponent(), null, null);
+		return new ValidationQuery(getTargetChain().getNamespaces(), query, allTargetVariables, null, scope, this, null,
+				null);
 
 	}
 
@@ -189,4 +205,10 @@ public class MinCountConstraintComponent extends AbstractConstraintComponent {
 	public ValidationApproach getOptimalBulkValidationApproach() {
 		return ValidationApproach.SPARQL;
 	}
+
+	@Override
+	public List<Literal> getDefaultMessage() {
+		return List.of();
+	}
+
 }

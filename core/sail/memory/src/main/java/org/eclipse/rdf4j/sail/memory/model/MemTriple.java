@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.memory.model;
 
@@ -40,17 +43,13 @@ public class MemTriple extends MemResource implements Triple {
 
 	@Override
 	public String stringValue() {
-		StringBuilder sb = new StringBuilder(256);
-
-		sb.append("<<");
-		sb.append(getSubject());
-		sb.append(" ");
-		sb.append(getPredicate());
-		sb.append(" ");
-		sb.append(getObject());
-		sb.append(">>");
-
-		return sb.toString();
+		return "<<" +
+				getSubject() +
+				" " +
+				getPredicate() +
+				" " +
+				getObject() +
+				">>";
 	}
 
 	@Override
@@ -80,21 +79,13 @@ public class MemTriple extends MemResource implements Triple {
 	}
 
 	@Override
-	public void addObjectStatement(MemStatement st) {
-
+	public void addObjectStatement(MemStatement st) throws InterruptedException {
 		objectStatements.add(st);
 	}
 
 	@Override
-	public void removeObjectStatement(MemStatement st) {
-		objectStatements.remove(st);
-
-	}
-
-	@Override
-	public void cleanSnapshotsFromObjectStatements(int currentSnapshot) {
+	public void cleanSnapshotsFromObjectStatements(int currentSnapshot) throws InterruptedException {
 		objectStatements.cleanSnapshots(currentSnapshot);
-
 	}
 
 	@Override
@@ -110,11 +101,6 @@ public class MemTriple extends MemResource implements Triple {
 	@Override
 	public void addContextStatement(MemStatement st) {
 		throw new UnsupportedOperationException("RDF-star triples can not be used as context identifier");
-	}
-
-	@Override
-	public void removeContextStatement(MemStatement st) {
-		// no-op
 	}
 
 	@Override

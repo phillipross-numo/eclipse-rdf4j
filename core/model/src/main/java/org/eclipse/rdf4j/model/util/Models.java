@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.model.util;
 
@@ -77,7 +80,6 @@ public class Models {
 	 * @return an object value from the given model, or {@link Optional#empty()} if no such value exists.
 	 * @apiNote replaced in 3.2.0 with the more generic {@link #object(Iterable)}. This method signature kept for binary
 	 *          compatibility.
-	 *
 	 */
 	public static Optional<Value> object(Model m) {
 		return object((Iterable<Statement>) m);
@@ -138,7 +140,6 @@ public class Models {
 	 *         such value exists.
 	 * @apiNote replaced in 3.2.0 with the more generic {@link #objectLiterals(Iterable)}. This method signature kept
 	 *          for binary compatibility.
-	 *
 	 * @see Model#objects()
 	 */
 	public static Set<Literal> objectLiterals(Model m) {
@@ -731,14 +732,12 @@ public class Models {
 	 * @implNote This uses an algorithm that has poor performance in many cases and can potentially get stuck in an
 	 *           endless loop. We <strong>strongly recommend</strong> using the new algorithm available in the
 	 *           {@link #isomorphic(Iterable, Iterable)} implementation.
-	 *
-	 * @deprecated since 3.6.0 - use {@link #isomorphic(Iterable, Iterable)} instead.
-	 *
-	 * @since 3.6.0
 	 * @see #isomorphic(Iterable, Iterable)
+	 * @since 3.6.0
+	 * @deprecated Use {@link #isomorphic(Iterable, Iterable)} instead.
 	 */
 	@Experimental
-	@Deprecated
+	@Deprecated(since = "3.6.0")
 	public static boolean legacyIsomorphic(Iterable<? extends Statement> model1, Iterable<? extends Statement> model2) {
 		if (model1 == model2) {
 			return true;

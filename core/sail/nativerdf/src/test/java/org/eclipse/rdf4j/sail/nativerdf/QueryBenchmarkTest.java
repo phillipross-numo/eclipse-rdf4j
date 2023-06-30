@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2019 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.nativerdf;
@@ -23,10 +26,10 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * @author Håvard Ottestad
@@ -34,8 +37,6 @@ import org.junit.rules.TemporaryFolder;
 public class QueryBenchmarkTest {
 
 	private static SailRepository repository;
-
-	public static TemporaryFolder tempDir = new TemporaryFolder();
 
 	private static final String query1;
 	private static final String query2;
@@ -57,12 +58,10 @@ public class QueryBenchmarkTest {
 
 	static List<Statement> statementList;
 
-	@BeforeClass
-	public static void beforeClass() throws IOException {
-		tempDir.create();
-		File file = tempDir.newFolder();
+	@BeforeAll
+	public static void beforeClass(@TempDir File dataDir) throws IOException {
 
-		repository = new SailRepository(new NativeStore(file, "spoc,ospc,psoc"));
+		repository = new SailRepository(new NativeStore(dataDir, "spoc,ospc,psoc"));
 
 		try (SailRepositoryConnection connection = repository.getConnection()) {
 			connection.begin(IsolationLevels.NONE);
@@ -83,11 +82,9 @@ public class QueryBenchmarkTest {
 		return QueryBenchmarkTest.class.getClassLoader().getResourceAsStream(name);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void afterClass() throws IOException {
-		tempDir.delete();
 		repository.shutDown();
-		tempDir = null;
 		repository = null;
 		statementList = null;
 	}

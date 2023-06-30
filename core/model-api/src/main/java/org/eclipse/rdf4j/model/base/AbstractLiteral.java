@@ -1,10 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
- ******************************************************************************/
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 
 package org.eclipse.rdf4j.model.base;
 
@@ -88,9 +91,7 @@ public abstract class AbstractLiteral implements Literal {
 	 *               throws an {@code IllegalArgumentException} if the label of this literal doesn't represent a value
 	 *               of the expected type
 	 * @param <V>    the expected value type
-	 *
 	 * @return the value returned by {@code mapper}
-	 *
 	 * @throws NullPointerException if {@code mapper} is {@code null}
 	 */
 	private <V> V value(Function<String, V> mapper) {
@@ -187,14 +188,8 @@ public abstract class AbstractLiteral implements Literal {
 
 				.map(language -> label + '@' + language)
 
-				.orElseGet(() -> {
-
-					final IRI datatype = getDatatype();
-
-					return datatype.equals(CoreDatatype.XSD.STRING) ? label
-							: label + "^^<" + datatype.stringValue() + ">";
-
-				});
+				.orElseGet(() -> CoreDatatype.XSD.STRING == getCoreDatatype() ? label
+						: label + "^^<" + getDatatype().stringValue() + ">");
 	}
 
 	private boolean equals(Optional<String> x, Optional<String> y) {

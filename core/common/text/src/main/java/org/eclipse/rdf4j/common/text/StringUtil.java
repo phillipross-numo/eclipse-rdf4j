@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.common.text;
@@ -29,10 +32,9 @@ public class StringUtil {
 	 * @param news The String is the new content.
 	 * @param text The String in which the substitution is done.
 	 * @return The result String containing the substitutions; if no substitutions were made, the result is 'text'.
-	 * 
 	 * @deprecated use {@link String#replace(CharSequence, CharSequence) instead}.
 	 */
-	@Deprecated
+	@Deprecated(since = "4.0.0")
 	public static String gsub(String olds, String news, String text) {
 		if (olds == null || olds.length() == 0) {
 			// Nothing to substitute.
@@ -80,10 +82,10 @@ public class StringUtil {
 
 	/**
 	 * Escapes a string to a (mostly) conforming IRI value and append it to the appendable.
-	 *
+	 * <p>
 	 * Non-ASCII (valid) values can optionally be numerically encoded by setting escapeUnicode to true. Most characters
 	 * that are invalid in an IRI - like a white space or control character - are percent-encoded.
-	 *
+	 * <p>
 	 * This is slightly faster than {@link org.eclipse.rdf4j.common.net.ParsedIRI#create(String)} for valid IRI (without
 	 * percents) and much faster for IRI with invalid (percent-encoded) characters, though it is less accurate.
 	 *

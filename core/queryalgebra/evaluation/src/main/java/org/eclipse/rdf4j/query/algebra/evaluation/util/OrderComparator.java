@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.util;
 
@@ -12,15 +15,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.Order;
-import org.eclipse.rdf4j.query.algebra.OrderElem;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.ArrayBindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.EvaluationStrategy;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryValueEvaluationStep;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.QueryEvaluationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,35 +47,59 @@ public class OrderComparator implements Comparator<BindingSet> {
 
 	private final Comparator<BindingSet> bindingContentsComparator;
 
-	public OrderComparator(EvaluationStrategy strategy, Order order, ValueComparator vcmp,
+	public OrderComparator(EvaluationStrategy strategy, Order order, ValueComparator cmp,
 			QueryEvaluationContext context) {
-		this.cmp = vcmp;
-		Comparator<BindingSet> allComparator = null;
-		for (OrderElem element : order.getElements()) {
-			final QueryValueEvaluationStep prepared = strategy.precompile(element.getExpr(), context);
-			final boolean ascending = element.isAscending();
-			Comparator<BindingSet> comparator = (o1, o2) -> {
-				Value v1 = prepared.evaluate(o1);
-				Value v2 = prepared.evaluate(o2);
-
-				int compare = cmp.compare(v1, v2);
-				return ascending ? compare : -compare;
-			};
-			allComparator = andThen(allComparator, comparator);
-		}
-		if (allComparator == null) {
-			this.bindingContentsComparator = (o1, o2) -> 0;
-		} else {
-			this.bindingContentsComparator = allComparator;
-		}
+		this.cmp = cmp;
+		this.bindingContentsComparator = precompileComparator(strategy, order, context);
 	}
 
-	private Comparator<BindingSet> andThen(Comparator<BindingSet> allComparator, Comparator<BindingSet> comparator) {
-		if (allComparator == null) {
-			return comparator;
-		} else {
-			return allComparator.thenComparing(comparator);
-		}
+	private Comparator<BindingSet> precompileComparator(EvaluationStrategy strategy, Order order,
+			QueryEvaluationContext context) {
+
+		return order.getElements()
+				.stream()
+				.map(element -> {
+					boolean ascending = element.isAscending();
+					ValueExpr expr = element.getExpr();
+
+					if (expr instanceof Var) {
+						// Here we optimize for the most common case where the ORDER BY clause uses Var(s) e.g. "ORDER
+						// BY ?a"
+
+						Function<BindingSet, Value> getValue = context.getValue(((Var) expr).getName());
+
+						return (Comparator<BindingSet>) (o1, o2) -> {
+							Value v1 = getValue.apply(o1);
+							Value v2 = getValue.apply(o2);
+
+							int compare = cmp.compare(v1, v2);
+							return ascending ? compare : -compare;
+						};
+					} else {
+						QueryValueEvaluationStep prepared = strategy.precompile(expr, context);
+
+						return (Comparator<BindingSet>) (o1, o2) -> {
+							Value v1 = null;
+							Value v2 = null;
+
+							try {
+								v1 = prepared.evaluate(o1);
+							} catch (ValueExprEvaluationException ignored) {
+							}
+
+							try {
+								v2 = prepared.evaluate(o2);
+							} catch (ValueExprEvaluationException ignored) {
+							}
+
+							int compare = cmp.compare(v1, v2);
+							return ascending ? compare : -compare;
+						};
+					}
+				})
+				.reduce(Comparator::thenComparing)
+				.orElse((o1, o2) -> 0);
+
 	}
 
 	@Override
@@ -91,9 +121,7 @@ public class OrderComparator implements Comparator<BindingSet> {
 				if (o1 == null) {
 					return o2 == null ? 0 : 1;
 				}
-				if (o2 == null) {
-					return o1 == null ? 0 : -1;
-				}
+				return -1;
 			}
 
 			if (o2.size() != o1.size()) {

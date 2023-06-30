@@ -1,4 +1,17 @@
+/*******************************************************************************
+ * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 package org.eclipse.rdf4j.sail.lucene.impl;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,12 +27,10 @@ import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
 import org.eclipse.rdf4j.sail.lucene.LuceneSail;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +45,6 @@ public class LuceneIndexLocationTest {
 
 	private final String luceneIndexPath = "sail-index";
 
-	@Rule
-	public TemporaryFolder tmpFolder = new TemporaryFolder();
-
 	Sail sail;
 
 	SailRepository repository;
@@ -50,10 +58,8 @@ public class LuceneIndexLocationTest {
 	 *
 	 * @throws Exception
 	 */
-	@Before
-	public void setUp() throws Exception {
-		File dataDir = tmpFolder.newFolder();
-
+	@BeforeEach
+	public void setUp(@TempDir File dataDir) throws Exception {
 		sail = new MemoryStore();
 
 		LuceneSail lucene = new LuceneSail();
@@ -76,7 +82,7 @@ public class LuceneIndexLocationTest {
 		connection = repository.getConnection();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws IOException, RepositoryException {
 		try {
 			if (connection != null) {
@@ -100,11 +106,10 @@ public class LuceneIndexLocationTest {
 		Path lucenePath = repository.getDataDir().toPath().resolve(luceneIndexPath);
 
 		log.info("Lucene index location: {}", lucenePath);
-		Assert.assertEquals(dataDir.getAbsolutePath() + File.separator + luceneIndexPath,
+		assertEquals(dataDir.getAbsolutePath() + File.separator + luceneIndexPath,
 				lucenePath.toAbsolutePath().toString());
 
-		Assert.assertTrue(lucenePath.toFile().exists());
-		Assert.assertTrue(lucenePath.toFile().isDirectory());
+		assertTrue(lucenePath.toFile().exists());
+		assertTrue(lucenePath.toFile().isDirectory());
 	}
-
 }

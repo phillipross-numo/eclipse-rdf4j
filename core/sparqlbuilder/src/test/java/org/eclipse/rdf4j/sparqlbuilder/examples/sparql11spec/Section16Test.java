@@ -1,13 +1,17 @@
 /*******************************************************************************
- Copyright (c) 2018 Eclipse RDF4J contributors.
- All rights reserved. This program and the accompanying materials
- are made available under the terms of the Eclipse Distribution License v1.0
- which accompanies this distribution, and is available at
- http://www.eclipse.org/org/documents/edl-v10.php.
+ * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sparqlbuilder.examples.sparql11spec;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.rdf4j.sparqlbuilder.core.SparqlBuilder.var;
 import static org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf.iri;
 
@@ -33,8 +37,7 @@ import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPatterns;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.Iri;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.RdfBlankNode;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class Section16Test extends BaseExamples {
 	@Test
@@ -54,7 +57,7 @@ public class Section16Test extends BaseExamples {
 		query.prefix(dc, ns)
 				.select(title, discountedPrice)
 				.where(x.has(ns.iri("price"), p), x.has(dc.iri("title"), title), x.has(ns.iri("discount"), discount));
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX  dc:  <http://purl.org/dc/elements/1.1/>\n"
 						+ "PREFIX  ns:  <https://example.org/ns#>\n"
 						+ "SELECT  ?title ((?p*(1-?discount)) AS ?price) WHERE\n"
@@ -72,7 +75,7 @@ public class Section16Test extends BaseExamples {
 		// (rather than Projectable instances) replaces (rather than augments)
 		// the query's projections
 		query.select(newProjection);
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX  dc:  <http://purl.org/dc/elements/1.1/>\n"
 						+ "PREFIX  ns:  <https://example.org/ns#>\n"
 						+ "SELECT  ?title (?p AS ?fullPrice) ((?fullPrice*(1-?discount)) AS ?customerPrice) WHERE\n"
@@ -89,16 +92,16 @@ public class Section16Test extends BaseExamples {
 				vcard = SparqlBuilder.prefix("vcard", iri("http://www.w3.org/2001/vcard-rdf/3.0#"));
 		Iri aliceIri = Rdf.iri("http://example.org/person#", "Alice");
 		Variable name = var("name"), x = var("x");
-		Assert.assertThat(Queries.CONSTRUCT(aliceIri.has(vcard.iri("FN"), name))
+		assertThat(Queries.CONSTRUCT(aliceIri.has(vcard.iri("FN"), name))
 				.where(x.has(foaf.iri("name"), name))
 				.prefix(foaf, vcard)
-				.getQueryString(),
-				stringEqualsIgnoreCaseAndWhitespace(
-						"PREFIX foaf:    <http://xmlns.com/foaf/0.1/>\n"
-								+ "PREFIX vcard:   <http://www.w3.org/2001/vcard-rdf/3.0#>\n"
-								+ "CONSTRUCT   { <http://example.org/person#Alice> vcard:FN ?name .}\n"
-								+ "WHERE       { ?x foaf:name ?name . }"
-				));
+				.getQueryString()
+		).is(stringEqualsIgnoreCaseAndWhitespace(
+				"PREFIX foaf:    <http://xmlns.com/foaf/0.1/>\n"
+						+ "PREFIX vcard:   <http://www.w3.org/2001/vcard-rdf/3.0#>\n"
+						+ "CONSTRUCT   { <http://example.org/person#Alice> vcard:FN ?name .}\n"
+						+ "WHERE       { ?x foaf:name ?name . }"
+		));
 	}
 
 	@Test
@@ -117,7 +120,7 @@ public class Section16Test extends BaseExamples {
 				.where(x.has(foaf.iri("firstName"), gname).union(x.has(foaf.iri("givenname"), gname)),
 						x.has(foaf.iri("surname"), fname).union(x.has(foaf.iri("family_name"), fname)));
 
-		Assert.assertThat(cQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(cQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf:    <http://xmlns.com/foaf/0.1/>\n"
 						+ "PREFIX vcard:   <http://www.w3.org/2001/vcard-rdf/3.0#>\n"
 						+ "\n"
@@ -150,7 +153,7 @@ public class Section16Test extends BaseExamples {
 
 		ConstructQuery query = Queries.CONSTRUCT(s.has(p, o)).where(where).prefix(dc, app, xsd);
 
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX  dc: <http://purl.org/dc/elements/1.1/>\n"
 						+ "PREFIX app: <http://example.org/ns#>\n"
 						+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
@@ -177,7 +180,7 @@ public class Section16Test extends BaseExamples {
 				.where(subject.has(foaf.iri("name"), name).andHas(site.iri("hits"), hits))
 				.orderBy(hits.desc())
 				.limit(2);
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "PREFIX site: <http://example.org/stats#>\n"
 						+ "\n"
@@ -199,7 +202,7 @@ public class Section16Test extends BaseExamples {
 		ConstructQuery query = Queries.CONSTRUCT(x.has(foaf.iri("name"), name))
 				.where(x.has(foaf.iri("name"), name))
 				.prefix(foaf);
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "\n"
 						+ "CONSTRUCT { ?x foaf:name ?name .} \n"

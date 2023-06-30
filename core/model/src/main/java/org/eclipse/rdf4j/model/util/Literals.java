@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.model.util;
 
@@ -30,7 +33,6 @@ import org.eclipse.rdf4j.model.vocabulary.XSD;
  *
  * @author Arjohn Kampman
  * @author Peter Ansell
- *
  * @See {@link Values}
  */
 public class Literals {
@@ -385,9 +387,9 @@ public class Literals {
 	 * @param object       an object to be converted to a typed literal.
 	 * @return a typed literal representation of the supplied object.
 	 * @throws NullPointerException If the object was null.
-	 * @deprecated since 3.5.0 - use {@link Values#literal(Object)} instead.
+	 * @deprecated Use {@link Values#literal(Object)} instead.
 	 */
-	@Deprecated
+	@Deprecated(since = "3.5.0")
 	public static Literal createLiteral(ValueFactory valueFactory, Object object) {
 		try {
 			return createLiteral(valueFactory, object, false);
@@ -408,9 +410,9 @@ public class Literals {
 	 * @return a typed literal representation of the supplied object.
 	 * @throws LiteralUtilException If the literal could not be created.
 	 * @throws NullPointerException If the object was null.
-	 * @deprecated since 3.5.0 - use {@link Values#literal(Object, boolean)} instead.
+	 * @deprecated Use {@link Values#literal(Object, boolean)} instead.
 	 */
-	@Deprecated
+	@Deprecated(since = "3.5.0")
 	public static Literal createLiteralOrFail(ValueFactory valueFactory, Object object) throws LiteralUtilException {
 		return createLiteral(valueFactory, object, true);
 	}

@@ -1,11 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.shacl.ast.planNodes;
+
+import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
@@ -37,7 +42,7 @@ public class PlanNodeHelper {
 
 	public static Dataset asDefaultGraphDataset(Resource[] dataGraph) {
 		if (dataGraph.length == 0) {
-			return null;
+			return AllDataset.instance;
 		} else if (dataGraph.length == 1 && dataGraph[0] == null) {
 			return rdf4jNilDataset;
 		}
@@ -53,6 +58,32 @@ public class PlanNodeHelper {
 			}
 		}
 		return dataGraphDataset;
+	}
+
+	static final class AllDataset implements Dataset {
+
+		static final AllDataset instance = new AllDataset();
+		private static final Set<IRI> empty = Set.of();
+
+		@Override
+		public Set<IRI> getDefaultRemoveGraphs() {
+			return empty;
+		}
+
+		@Override
+		public IRI getDefaultInsertGraph() {
+			return null;
+		}
+
+		@Override
+		public Set<IRI> getDefaultGraphs() {
+			return empty;
+		}
+
+		@Override
+		public Set<IRI> getNamedGraphs() {
+			return empty;
+		}
 	}
 
 }

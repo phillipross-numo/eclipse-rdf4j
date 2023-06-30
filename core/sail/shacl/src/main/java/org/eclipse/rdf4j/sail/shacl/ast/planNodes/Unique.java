@@ -1,9 +1,12 @@
 /*******************************************************************************
- * .Copyright (c) 2020 Eclipse RDF4J contributors.
+ * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.planNodes;
@@ -55,7 +58,7 @@ public class Unique implements PlanNode {
 	}
 
 	public static PlanNode getInstance(PlanNode parent, boolean compress) {
-		if (parent == EmptyNode.getInstance()) {
+		if (parent.isGuaranteedEmpty()) {
 			return parent;
 		}
 		return new Unique(parent, compress);
@@ -66,9 +69,16 @@ public class Unique implements PlanNode {
 
 		return new LoggingCloseableIteration(this, validationExecutionLogger) {
 
-			final CloseablePeakableIteration<? extends ValidationTuple, SailException> parentIterator;
+			CloseablePeakableIteration<? extends ValidationTuple, SailException> parentIterator;
+			Set<ValidationTupleValueAndActiveTarget> targetAndValueDedupeSet;
 
-			{
+			boolean propertyShapeWithValue;
+
+			ValidationTuple next;
+			ValidationTuple previous;
+
+			@Override
+			protected void init() {
 				if (compress) {
 					parentIterator = new CloseablePeakableIteration<>(
 							new TargetAndValueSortIterator(new CloseablePeakableIteration<>(parent.iterator())));
@@ -76,13 +86,6 @@ public class Unique implements PlanNode {
 					parentIterator = new CloseablePeakableIteration<>(parent.iterator());
 				}
 			}
-
-			Set<ValidationTupleValueAndActiveTarget> targetAndValueDedupeSet;
-
-			boolean propertyShapeWithValue;
-
-			ValidationTuple next;
-			ValidationTuple previous;
 
 			private void calculateNext() {
 				if (next != null) {
@@ -163,21 +166,23 @@ public class Unique implements PlanNode {
 			}
 
 			@Override
-			public void localClose() throws SailException {
-				parentIterator.close();
+			public void localClose() {
+				if (parentIterator != null) {
+					parentIterator.close();
+				}
 				targetAndValueDedupeSet = null;
 				next = null;
 				previous = null;
 			}
 
 			@Override
-			protected boolean localHasNext() throws SailException {
+			protected boolean localHasNext() {
 				calculateNext();
 				return next != null;
 			}
 
 			@Override
-			protected ValidationTuple loggingNext() throws SailException {
+			protected ValidationTuple loggingNext() {
 				calculateNext();
 				assert !(previous != null && next.compareActiveTarget(previous) < 0);
 
@@ -258,10 +263,6 @@ public class Unique implements PlanNode {
 
 		public ValidationTupleValueAndActiveTarget(ValidationTuple validationTuple) {
 			this.validationTuple = validationTuple;
-		}
-
-		public ValidationTuple getValidationTuple() {
-			return validationTuple;
 		}
 
 		@Override

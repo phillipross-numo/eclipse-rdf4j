@@ -1,13 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.testsuite.query.parser.sparql.manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
@@ -21,9 +25,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.rdf4j.common.io.IOUtil;
 import org.eclipse.rdf4j.common.iteration.Iterations;
-import org.eclipse.rdf4j.common.text.StringUtil;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
@@ -65,7 +69,6 @@ import org.slf4j.LoggerFactory;
  * Base functionality for SPARQL query compliance test suites .
  *
  * @author Jeen Broekstra
- *
  */
 public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 
@@ -75,6 +78,7 @@ public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 	private final String resultFileURL;
 	private final Dataset dataset;
 	private final boolean ordered;
+	private final boolean laxCardinality;
 
 	private Repository dataRepository;
 
@@ -88,12 +92,13 @@ public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 	 * @param ordered
 	 */
 	public SPARQLQueryComplianceTest(String displayName, String testURI, String name, String queryFileURL,
-			String resultFileURL, Dataset dataset, boolean ordered) {
+			String resultFileURL, Dataset dataset, boolean ordered, boolean laxCardinality) {
 		super(displayName, testURI, name);
 		this.queryFileURL = queryFileURL;
 		this.resultFileURL = resultFileURL;
 		this.dataset = dataset;
 		this.ordered = ordered;
+		this.laxCardinality = laxCardinality;
 	}
 
 	@Before
@@ -135,6 +140,15 @@ public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 
 			String queryString = readQueryString();
 			Query query = conn.prepareQuery(QueryLanguage.SPARQL, queryString, queryFileURL);
+
+			assertThatNoException().isThrownBy(() -> {
+				int hashCode = query.hashCode();
+				if (hashCode == System.identityHashCode(query)) {
+					throw new UnsupportedOperationException(
+							"hashCode() result is the same as  the identityHashCode in " + query.getClass().getName());
+				}
+			});
+
 			if (dataset != null) {
 				query.setDataset(dataset);
 			}
@@ -236,7 +250,6 @@ public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 		MutableTupleQueryResult expectedResultTable = new MutableTupleQueryResult(expectedResult);
 
 		boolean resultsEqual;
-		boolean laxCardinality = false; // TODO determine if we still need this
 		if (laxCardinality) {
 			resultsEqual = QueryResults.isSubset(queryResultTable, expectedResultTable);
 		} else {
@@ -284,67 +297,72 @@ public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 			List<BindingSet> unexpectedBindings = new ArrayList<>(queryBindings);
 			unexpectedBindings.removeAll(expectedBindings);
 
-			StringBuilder message = new StringBuilder(128);
-			message.append("\n============ ");
-			message.append(getName());
-			message.append(" =======================\n");
+			StringBuilder message = new StringBuilder();
+			String header = "=================================== " + getName() + " ===================================";
+			String footer = StringUtils.leftPad("", header.length(), "=");
+			message.append("\n").append(header).append("\n");
+
+			message.append("# Query:\n\n");
+			message.append(readQueryString().trim()).append("\n");
+			message.append(footer).append("\n");
+
+			message.append("# Expected bindings:\n\n");
+			for (BindingSet bs : expectedBindings) {
+				printBindingSet(bs, message);
+			}
+			message.append(footer).append("\n");
+
+			message.append("# Actual bindings:\n\n");
+			for (BindingSet bs : queryBindings) {
+				printBindingSet(bs, message);
+			}
+			message.append(footer).append("\n");
 
 			if (!missingBindings.isEmpty()) {
 
-				message.append("Missing bindings: \n");
+				message.append("# Missing bindings: \n\n");
 				for (BindingSet bs : missingBindings) {
 					printBindingSet(bs, message);
 				}
-
-				message.append("=============");
-				StringUtil.appendN('=', getName().length(), message);
-				message.append("========================\n");
+				message.append(footer).append("\n");
 			}
 
 			if (!unexpectedBindings.isEmpty()) {
-				message.append("Unexpected bindings: \n");
+				message.append("# Unexpected bindings: \n\n");
 				for (BindingSet bs : unexpectedBindings) {
 					printBindingSet(bs, message);
 				}
-
-				message.append("=============");
-				StringUtil.appendN('=', getName().length(), message);
-				message.append("========================\n");
+				message.append(footer).append("\n");
 			}
 
 			if (ordered && missingBindings.isEmpty() && unexpectedBindings.isEmpty()) {
-				message.append("Results are not in expected order.\n");
-				message.append(" =======================\n");
-				message.append("query result: \n");
+				message.append("# Results are not in expected order.\n");
+				message.append(footer).append("\n");
+				message.append("# query result: \n\n");
 				for (BindingSet bs : queryBindings) {
 					printBindingSet(bs, message);
 				}
-				message.append(" =======================\n");
-				message.append("expected result: \n");
+				message.append(footer).append("\n");
+				message.append("# expected result: \n\n");
 				for (BindingSet bs : expectedBindings) {
 					printBindingSet(bs, message);
 				}
-				message.append(" =======================\n");
-
-				System.out.print(message.toString());
+				message.append(footer).append("\n");
 			} else if (missingBindings.isEmpty() && unexpectedBindings.isEmpty()) {
-				message.append("unexpected duplicate in result.\n");
-				message.append(" =======================\n");
-				message.append("query result: \n");
+				message.append("# unexpected duplicate in result.\n");
+				message.append(footer).append("\n");
+				message.append("# query result: \n\n");
 				for (BindingSet bs : queryBindings) {
 					printBindingSet(bs, message);
 				}
-				message.append(" =======================\n");
-				message.append("expected result: \n");
+				message.append(footer).append("\n");
+				message.append("# expected result: \n\n");
 				for (BindingSet bs : expectedBindings) {
 					printBindingSet(bs, message);
 				}
-				message.append(" =======================\n");
-
-				System.out.print(message.toString());
+				message.append(footer).append("\n");
 			}
 
-			logger.error(message.toString());
 			fail(message.toString());
 		}
 	}
@@ -395,7 +413,7 @@ public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 				query.append(" PREFIX sd: <http://www.w3.org/ns/sparql-service-description#> \n");
 				query.append(" PREFIX ent: <http://www.w3.org/ns/entailment/> \n");
 				query.append(
-						" SELECT DISTINCT ?testURI ?testName ?resultFile ?action ?queryFile ?defaultGraph ?ordered \n");
+						" SELECT DISTINCT ?testURI ?testName ?resultFile ?action ?queryFile ?defaultGraph ?ordered ?laxCardinality \n");
 				query.append(" WHERE { [] rdf:first ?testURI . \n");
 				if (approvedOnly) {
 					query.append(" ?testURI dawgt:approval dawgt:Approved . \n");
@@ -408,6 +426,7 @@ public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 				query.append(" ?action qt:query ?queryFile . \n");
 				query.append(" OPTIONAL { ?action qt:data ?defaultGraph } \n");
 				query.append(" OPTIONAL { ?action sd:entailmentRegime ?regime } \n");
+				query.append(" OPTIONAL { ?testURI mf:resultCardinality ?laxCardinality, mf:LaxCardinality } \n");
 				// skip tests involving CSV result files, these are not query tests
 				query.append(" FILTER(!STRENDS(STR(?resultFile), \"csv\")) \n");
 				// skip tests involving entailment regimes
@@ -460,7 +479,9 @@ public abstract class SPARQLQueryComplianceTest extends SPARQLComplianceTest {
 								bs.getValue("queryFile").stringValue(),
 								bs.getValue("resultFile").stringValue(),
 								dataset,
-								Literals.getBooleanValue(ordered, false) });
+								Literals.getBooleanValue(ordered, false),
+								bs.hasBinding("laxCardinality")
+						});
 					}
 				}
 

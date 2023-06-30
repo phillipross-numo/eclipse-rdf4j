@@ -1,13 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2016 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.iterator;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.CloseableIteratorIteration;
@@ -29,8 +32,8 @@ import org.eclipse.rdf4j.query.algebra.evaluation.TripleSource;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.QueryEvaluationContext;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.StrictEvaluationStrategy;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author jeen
@@ -41,7 +44,7 @@ public class ZeroLengthPathIterationTest {
 
 	private EvaluationStrategy evaluator;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		Model m = new LinkedHashModel();
 		m.add(RDF.ALT, RDF.TYPE, RDFS.CLASS);
@@ -80,9 +83,9 @@ public class ZeroLengthPathIterationTest {
 				bindings, new QueryEvaluationContext.Minimal(null))) {
 			BindingSet result = zlp.getNextElement();
 
-			assertTrue("zlp evaluation should have retained unrelated input binding", result.hasBinding("a"));
-			assertTrue("zlp evaluation should binding for subject var", result.hasBinding("x"));
-			assertTrue("zlp evaluation should binding for object var", result.hasBinding("y"));
+			assertTrue(result.hasBinding("a"), "zlp evaluation should have retained unrelated input binding");
+			assertTrue(result.hasBinding("x"), "zlp evaluation should binding for subject var");
+			assertTrue(result.hasBinding("y"), "zlp evaluation should binding for object var");
 		}
 	}
 }

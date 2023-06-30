@@ -1,13 +1,18 @@
 /*******************************************************************************
- Copyright (c) 2018 Eclipse RDF4J contributors.
- All rights reserved. This program and the accompanying materials
- are made available under the terms of the Eclipse Distribution License v1.0
- which accompanies this distribution, and is available at
- http://www.eclipse.org/org/documents/edl-v10.php.
+ * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sparqlbuilder.examples;
 
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.HamcrestCondition;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DC;
@@ -16,10 +21,7 @@ import org.eclipse.rdf4j.sparqlbuilder.core.query.Queries;
 import org.eclipse.rdf4j.sparqlbuilder.core.query.SelectQuery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * The classes inheriting from this pose as examples on how to use SparqlBuilder. They follow the SPARQL 1.1 Spec and
@@ -48,10 +50,7 @@ public class BaseExamples {
 
 	protected SelectQuery query;
 
-	@Rule
-	public TestName testName = new TestName();
-
-	@Before
+	@BeforeEach
 	public void before() {
 		resetQuery();
 	}
@@ -67,9 +66,9 @@ public class BaseExamples {
 		return s.toLowerCase().replaceAll("[\n\\s]", "");
 	}
 
-	protected Matcher<? super String> stringEqualsIgnoreCaseAndWhitespace(String expected) {
+	protected Condition<String> stringEqualsIgnoreCaseAndWhitespace(String expected) {
 		final String expectedConverted = toLowerRemoveWhitespace(expected);
-		return new BaseMatcher<>() {
+		return new HamcrestCondition<>(new BaseMatcher<>() {
 			private String aroundString = null;
 
 			@Override
@@ -96,7 +95,7 @@ public class BaseExamples {
 				description.appendText(
 						"Expected: was \"" + expected.replaceAll("\n", "\\\\n").replaceAll("\\s+", " ") + "\"");
 			}
-		};
+		});
 	}
 
 	private String getFirstDifference(String expected, String actual, int length) {

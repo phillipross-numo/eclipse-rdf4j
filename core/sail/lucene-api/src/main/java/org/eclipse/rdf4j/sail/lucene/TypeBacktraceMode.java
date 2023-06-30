@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2022 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.lucene;
 
@@ -22,7 +25,7 @@ package org.eclipse.rdf4j.sail.lucene;
  * # Lucene Indexed literals:
  * my:subj2 "demo 2"
  * </pre>
- *
+ * <p>
  * The option will define how the Sail will handle the update:
  *
  * <pre>
@@ -34,9 +37,9 @@ public enum TypeBacktraceMode {
 	/**
 	 * The sail will get all previous triples of the subject and add them (if required) in the Lucene index, this mode
 	 * is enabled by default.
-	 *
+	 * <p>
 	 * the future state of the Lucene index in the <a href="#backtrace_example">above example</a> would be:
-	 * 
+	 *
 	 * <pre>
 	 * my:subj1 "demo 1"
 	 * </pre>
@@ -45,9 +48,9 @@ public enum TypeBacktraceMode {
 	/**
 	 * The sail won't get any previous triples of the subject in the Lucene index, this mode is useful if you won't
 	 * change the type and values of your subjects in multiple queries.
-	 *
+	 * <p>
 	 * the future state of the Lucene index in the <a href="#backtrace_example">above example</a> would be:
-	 * 
+	 *
 	 * <pre>
 	 * my:subj2 "demo 2"
 	 * </pre>

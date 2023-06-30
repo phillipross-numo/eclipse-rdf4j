@@ -1,15 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.memory.model;
 
 import java.lang.ref.SoftReference;
 
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * A MemoryStore-specific implementation of URI that stores separated namespace and local name information to enable
@@ -108,23 +112,44 @@ public class MemIRI extends MemResource implements IRI {
 	}
 
 	@Override
-	public boolean equals(Object other) {
-		if (this == other) {
+	public boolean equals(Object o) {
+		if (this == o) {
 			return true;
 		}
 
-		if (other instanceof MemIRI) {
-			MemIRI o = (MemIRI) other;
-			if (o.creator == creator) {
+		if (o == null) {
+			return false;
+		}
+
+		if (o.getClass() == MemIRI.class) {
+			MemIRI oMemIRI = (MemIRI) o;
+			if (oMemIRI.creator == creator) {
 				// two different MemIRI from the same MemoryStore can not be equal.
 				return false;
 			}
-			return namespace.equals(o.getNamespace()) && localName.equals(o.getLocalName());
-		} else if (other instanceof IRI) {
-			String otherStr = ((IRI) other).stringValue();
+			return namespace.length() == oMemIRI.namespace.length() &&
+					localName.length() == oMemIRI.localName.length() &&
+					namespace.equals(oMemIRI.namespace) &&
+					localName.equals(oMemIRI.localName);
 
-			return namespace.length() + localName.length() == otherStr.length() && otherStr.endsWith(localName)
-					&& otherStr.startsWith(namespace);
+		}
+
+		if (o instanceof Value) {
+			Value oValue = (Value) o;
+			if (oValue.isIRI()) {
+				String oStr = oValue.stringValue();
+
+				if (toStringCache != null) {
+					String stringValue = toStringCache.get();
+					if (stringValue != null) {
+						return stringValue.equals(oStr);
+					}
+				}
+
+				return namespace.length() + localName.length() == oStr.length() &&
+						oStr.endsWith(localName) &&
+						oStr.startsWith(namespace);
+			}
 		}
 
 		return false;
@@ -171,15 +196,8 @@ public class MemIRI extends MemResource implements IRI {
 	/**
 	 * Adds a statement to this MemURI's list of statements for which it is the predicate.
 	 */
-	public void addPredicateStatement(MemStatement st) {
+	public void addPredicateStatement(MemStatement st) throws InterruptedException {
 		predicateStatements.add(st);
-	}
-
-	/**
-	 * Removes a statement from this MemURI's list of statements for which it is the predicate.
-	 */
-	public void removePredicateStatement(MemStatement st) {
-		predicateStatements.remove(st);
 	}
 
 	/**
@@ -188,7 +206,7 @@ public class MemIRI extends MemResource implements IRI {
 	 *
 	 * @param currentSnapshot The current snapshot version.
 	 */
-	public void cleanSnapshotsFromPredicateStatements(int currentSnapshot) {
+	public void cleanSnapshotsFromPredicateStatements(int currentSnapshot) throws InterruptedException {
 		predicateStatements.cleanSnapshots(currentSnapshot);
 	}
 
@@ -203,17 +221,12 @@ public class MemIRI extends MemResource implements IRI {
 	}
 
 	@Override
-	public void addObjectStatement(MemStatement st) {
+	public void addObjectStatement(MemStatement st) throws InterruptedException {
 		objectStatements.add(st);
 	}
 
 	@Override
-	public void removeObjectStatement(MemStatement st) {
-		objectStatements.remove(st);
-	}
-
-	@Override
-	public void cleanSnapshotsFromObjectStatements(int currentSnapshot) {
+	public void cleanSnapshotsFromObjectStatements(int currentSnapshot) throws InterruptedException {
 		objectStatements.cleanSnapshots(currentSnapshot);
 	}
 

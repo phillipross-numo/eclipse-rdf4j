@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.federation;
 
@@ -28,7 +31,6 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * @author jeen
- *
  */
 public class FedXSPARQL11QueryComplianceTest extends SPARQL11QueryComplianceTest {
 
@@ -40,8 +42,8 @@ public class FedXSPARQL11QueryComplianceTest extends SPARQL11QueryComplianceTest
 	private RepositoryManager manager;
 
 	public FedXSPARQL11QueryComplianceTest(String displayName, String testURI, String name, String queryFileURL,
-			String resultFileURL, Dataset dataset, boolean ordered) {
-		super(displayName, testURI, name, queryFileURL, resultFileURL, dataset, ordered);
+			String resultFileURL, Dataset dataset, boolean ordered, boolean laxCardinality) {
+		super(displayName, testURI, name, queryFileURL, resultFileURL, dataset, ordered, laxCardinality);
 
 		// FIXME see https://github.com/eclipse/rdf4j/issues/2173
 		addIgnoredTest("sq04 - Subquery within graph pattern, default graph does not apply");

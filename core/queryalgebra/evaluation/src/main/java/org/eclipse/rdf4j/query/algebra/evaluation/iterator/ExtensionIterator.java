@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.iterator;
 
@@ -25,6 +28,7 @@ import org.eclipse.rdf4j.query.algebra.evaluation.QueryValueEvaluationStep;
 import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.QueryEvaluationContext;
 
+@Deprecated(since = "4.1.0")
 public class ExtensionIterator extends ConvertingIteration<BindingSet, BindingSet, QueryEvaluationException> {
 
 	private final Consumer<MutableBindingSet> setter;
@@ -86,10 +90,11 @@ public class ExtensionIterator extends ConvertingIteration<BindingSet, BindingSe
 
 	private static Consumer<MutableBindingSet> andThen(Consumer<MutableBindingSet> consumer,
 			Consumer<MutableBindingSet> next) {
-		if (consumer == null)
+		if (consumer == null) {
 			return next;
-		else
+		} else {
 			return consumer.andThen(next);
+		}
 	}
 
 	@Override

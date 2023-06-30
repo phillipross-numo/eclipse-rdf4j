@@ -1,16 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.impl;
 
 import java.util.Set;
 
-import org.eclipse.rdf4j.query.BindingSet;
-import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.algebra.And;
 import org.eclipse.rdf4j.query.algebra.Difference;
 import org.eclipse.rdf4j.query.algebra.Distinct;
@@ -30,11 +31,11 @@ import org.eclipse.rdf4j.query.algebra.Union;
 import org.eclipse.rdf4j.query.algebra.ValueExpr;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
-import org.eclipse.rdf4j.query.algebra.helpers.VarNameCollector;
+import org.eclipse.rdf4j.query.algebra.helpers.collectors.VarNameCollector;
 
 /**
  * Optimizes a query model by pushing {@link Filter}s as far down in the model tree as possible.
- *
+ * <p>
  * To make the first optimization succeed more often it splits filters which contains {@link And} conditions.
  *
  * <code>
@@ -51,38 +52,32 @@ import org.eclipse.rdf4j.query.algebra.helpers.VarNameCollector;
  * FILTER(?o2 < '4'^^xsd:int)
  * }
  * </code>
- *
+ * <p>
  * Then it optimizes a query model by merging adjacent {@link Filter}s. e.g. <code>
  * SELECT * WHERE {
- *  ?s ?p ?o .
- *  FILTER(?o > 2) .
- *  FILTER(?o < 4) .
- *  }
+ * ?s ?p ?o .
+ * FILTER(?o > 2) .
+ * FILTER(?o < 4) .
+ * }
  * </code> may be merged into <code>
  * SELECT * WHERE {
- *   ?s ?p ?o .
- *   FILTER(?o > 2 && ?o < 4) . }
- *  </code>
- *
+ * ?s ?p ?o .
+ * FILTER(?o > 2 && ?o < 4) . }
+ * </code>
+ * <p>
  * This optimization allows for sharing evaluation costs in the future and removes an iterator. This is done as a second
  * step to not break the first optimization. In the case that the splitting was done but did not help it is now undone.
  *
  * @author Arjohn Kampman
  * @author Jerven Bolleman
+ *
+ * @deprecated since 4.1.0. Use {@link org.eclipse.rdf4j.query.algebra.evaluation.optimizer.FilterOptimizer} instead.
  */
-public class FilterOptimizer implements QueryOptimizer {
+@Deprecated(forRemoval = true, since = "4.1.0")
+public class FilterOptimizer extends org.eclipse.rdf4j.query.algebra.evaluation.optimizer.FilterOptimizer
+		implements QueryOptimizer {
 
-	@Override
-	public void optimize(TupleExpr tupleExpr, Dataset dataset, BindingSet bindings) {
-		tupleExpr.visit(new DeMergeFilterFinder());
-		tupleExpr.visit(new FilterFinder(tupleExpr));
-		tupleExpr.visit(new MergeFilterFinder());
-	}
-
-	/*--------------------------*
-	 * Inner class FilterFinder *
-	 *--------------------------*/
-
+	@Deprecated(forRemoval = true, since = "4.1.0")
 	protected static class FilterFinder extends AbstractQueryModelVisitor<RuntimeException> {
 
 		protected final TupleExpr tupleExpr;
@@ -98,10 +93,7 @@ public class FilterOptimizer implements QueryOptimizer {
 		}
 	}
 
-	/*-----------------------------*
-	 * Inner class FilterRelocator *
-	 *-----------------------------*/
-
+	@Deprecated(forRemoval = true, since = "4.1.0")
 	protected static class FilterRelocator extends AbstractQueryModelVisitor<RuntimeException> {
 
 		public static void relocate(Filter filter) {
@@ -247,10 +239,7 @@ public class FilterOptimizer implements QueryOptimizer {
 		}
 	}
 
-	/*--------------------------*
-	 * Inner class MergeFilterFinder *
-	 *--------------------------*/
-
+	@Deprecated(forRemoval = true, since = "4.1.0")
 	protected static class MergeFilterFinder extends AbstractQueryModelVisitor<RuntimeException> {
 
 		@Override
@@ -269,10 +258,7 @@ public class FilterOptimizer implements QueryOptimizer {
 		}
 	}
 
-	/*--------------------------*
-	 * Inner class DeMergeFilterFinder *
-	 *--------------------------*/
-
+	@Deprecated(forRemoval = true, since = "4.1.0")
 	protected static class DeMergeFilterFinder extends AbstractQueryModelVisitor<RuntimeException> {
 
 		@Override
@@ -291,4 +277,5 @@ public class FilterOptimizer implements QueryOptimizer {
 			}
 		}
 	}
+
 }

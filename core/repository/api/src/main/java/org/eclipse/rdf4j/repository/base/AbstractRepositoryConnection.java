@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.repository.base;
 
@@ -19,6 +22,8 @@ import org.eclipse.rdf4j.common.iteration.Iteration;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.common.transaction.IsolationLevel;
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.NamespaceAware;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
@@ -185,9 +190,9 @@ public abstract class AbstractRepositoryConnection implements RepositoryConnecti
 	}
 
 	/**
-	 * @deprecated since 2.0. Use {@link #begin()} instead.
+	 * @deprecated Use {@link #begin()} instead.
 	 */
-	@Deprecated
+	@Deprecated(since = "2.0")
 	@Override
 	public void setAutoCommit(boolean autoCommit) throws RepositoryException {
 		if (isActive()) {
@@ -202,9 +207,9 @@ public abstract class AbstractRepositoryConnection implements RepositoryConnecti
 	}
 
 	/**
-	 * @deprecated since 2.0. Use {@link #isActive()} instead.
+	 * @deprecated Use {@link #isActive()} instead.
 	 */
-	@Deprecated
+	@Deprecated(since = "2.0")
 	@Override
 	public boolean isAutoCommit() throws RepositoryException {
 		return !isActive();
@@ -363,10 +368,22 @@ public abstract class AbstractRepositoryConnection implements RepositoryConnecti
 				"contexts argument may not be null; either the value should be cast to Resource or an empty array should be supplied");
 
 		boolean localTransaction = startLocalTransaction();
+
 		try {
 			for (Statement st : statements) {
 				addWithoutCommit(st, contexts);
 			}
+
+			if (statements instanceof NamespaceAware) {
+				var newNamespaces = ((NamespaceAware) statements).getNamespaces();
+				for (Namespace newNamespace : newNamespaces) {
+					String nsPrefix = newNamespace.getPrefix();
+					if (getNamespace(nsPrefix) == null) {
+						setNamespace(nsPrefix, newNamespace.getName());
+					}
+				}
+			}
+
 			conditionalCommit(localTransaction);
 		} catch (RuntimeException e) {
 			conditionalRollback(localTransaction);
@@ -404,6 +421,7 @@ public abstract class AbstractRepositoryConnection implements RepositoryConnecti
 
 		Objects.requireNonNull(contexts,
 				"contexts argument may not be null; either the value should be cast to Resource or an empty array should be supplied");
+
 		addWithoutCommit(st, contexts);
 
 		conditionalCommit(localTransaction);
@@ -486,6 +504,10 @@ public abstract class AbstractRepositoryConnection implements RepositoryConnecti
 	public void clear(Resource... contexts) throws RepositoryException {
 		remove(null, null, null, contexts);
 	}
+
+	public abstract String getNamespace(String prefix) throws RepositoryException;
+
+	public abstract void setNamespace(String prefix, String name) throws RepositoryException;
 
 	protected void addWithoutCommit(Statement st, Resource... contexts) throws RepositoryException {
 		if (contexts.length == 0 && st.getContext() != null) {

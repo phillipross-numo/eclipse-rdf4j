@@ -1,11 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.base;
+
+import java.util.Set;
 
 import org.eclipse.rdf4j.common.transaction.IsolationLevel;
 import org.eclipse.rdf4j.common.transaction.IsolationLevels;
@@ -91,6 +96,21 @@ public interface SailSink extends SailClosable {
 	void observe(Resource subj, IRI pred, Value obj, Resource... contexts) throws SailException;
 
 	/**
+	 * Called to indicate matching statements have been observed and must not change their state until after this
+	 * {@link SailSink} is committed, iff this was opened in an isolation level compatible with
+	 * {@link IsolationLevels#SERIALIZABLE}.
+	 *
+	 * @param subj    A Resource specifying the subject, or <var>null</var> for a wildcard.
+	 * @param pred    A IRI specifying the predicate, or <var>null</var> for a wildcard.
+	 * @param obj     A Value specifying the object, or <var>null</var> for a wildcard.
+	 * @param context The context of the observed statements.
+	 * @throws SailException If the triple source failed to observe these statements.
+	 */
+	default void observe(Resource subj, IRI pred, Value obj, Resource context) throws SailException {
+		observe(subj, pred, obj, new Resource[] { context });
+	}
+
+	/**
 	 * Adds a statement to the store.
 	 *
 	 * @param subj The subject of the statement to add.
@@ -115,15 +135,13 @@ public interface SailSink extends SailClosable {
 	 * Removes a statement with the specified subject, predicate, object, and context. All four parameters may be
 	 * non-null.
 	 *
-	 * Deprecated since 3.1.0 2019.
-	 *
 	 * @param subj The subject of the statement that should be removed
 	 * @param pred The predicate of the statement that should be removed
 	 * @param obj  The object of the statement that should be removed
 	 * @param ctx  The context from which to remove the statement
 	 * @throws SailException If the statement could not be removed, for example because no transaction is active.
 	 */
-	@Deprecated
+	@Deprecated(since = "3.1.0")
 	default void deprecate(Resource subj, IRI pred, Value obj, Resource ctx) throws SailException {
 		deprecate(SimpleValueFactory.getInstance().createStatement(subj, pred, obj, ctx));
 	}
@@ -150,4 +168,30 @@ public interface SailSink extends SailClosable {
 		return false;
 	}
 
+	default void approveAll(Set<Statement> approved, Set<Resource> approvedContexts) {
+		for (Statement statement : approved) {
+			approve(statement);
+		}
+	}
+
+	default void deprecateAll(Set<Statement> deprecated) {
+		for (Statement statement : deprecated) {
+			deprecate(statement);
+		}
+	}
+
+	default void observeAll(Set<Changeset.SimpleStatementPattern> observed) {
+		for (Changeset.SimpleStatementPattern p : observed) {
+			Resource subj = p.getSubject();
+			IRI pred = p.getPredicate();
+			Value obj = p.getObject();
+			Resource context = p.getContext();
+			if (p.isAllContexts()) {
+				observe(subj, pred, obj);
+			} else {
+				observe(subj, pred, obj, context);
+			}
+		}
+
+	}
 }

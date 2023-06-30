@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.iterator;
 
@@ -11,7 +14,6 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.eclipse.rdf4j.common.iteration.EmptyIteration;
 import org.eclipse.rdf4j.common.iteration.Iterations;
 import org.eclipse.rdf4j.common.iteration.LookAheadIteration;
 import org.eclipse.rdf4j.model.Value;
@@ -91,16 +93,16 @@ public class PathIteration extends LookAheadIteration<BindingSet, QueryEvaluatio
 	@Override
 	protected BindingSet getNextElement() throws QueryEvaluationException {
 		again: while (true) {
-			while (!currentIter.hasNext()) {
+			while (currentIter != null && !currentIter.hasNext()) {
 				Iterations.closeCloseable(currentIter);
 				createIteration();
 				// stop condition: if the iter is an EmptyIteration
-				if (currentIter instanceof EmptyIteration<?, ?>) {
+				if (currentIter == null) {
 					break;
 				}
 			}
 
-			while (currentIter.hasNext()) {
+			while (currentIter != null && currentIter.hasNext()) {
 				BindingSet potentialNextElement = currentIter.next();
 				MutableBindingSet nextElement;
 				// if it is not a compatible type of BindingSet
@@ -253,7 +255,7 @@ public class PathIteration extends LookAheadIteration<BindingSet, QueryEvaluatio
 
 		if (isUnbound(startVar, bindings) || isUnbound(endVar, bindings)) {
 			// the variable must remain unbound for this solution see https://www.w3.org/TR/sparql11-query/#assignment
-			currentIter = new EmptyIteration<>();
+			currentIter = null;
 		} else if (currentLength == 0L) {
 			ZeroLengthPath zlp = new ZeroLengthPath(scope, startVar.clone(), endVar.clone(),
 					contextVar != null ? contextVar.clone() : null);
@@ -313,7 +315,7 @@ public class PathIteration extends LookAheadIteration<BindingSet, QueryEvaluatio
 
 				currentIter = this.strategy.evaluate(pathExprClone, bindings);
 			} else {
-				currentIter = new EmptyIteration<>();
+				currentIter = null;
 			}
 			currentLength++;
 
@@ -414,13 +416,11 @@ public class PathIteration extends LookAheadIteration<BindingSet, QueryEvaluatio
 			if (toBeReplaced.equals(var) || (toBeReplaced.isAnonymous() && var.isAnonymous()
 					&& (toBeReplaced.hasValue() && toBeReplaced.getValue().equals(var.getValue())))) {
 				QueryModelNode parent = var.getParentNode();
-				parent.replaceChildNode(var, replacement);
-				replacement.setParentNode(parent);
+				parent.replaceChildNode(var, replacement.clone());
 			} else if (replaceAnons && var.isAnonymous() && !var.hasValue()) {
 				Var replacementVar = createAnonVar("anon-replace-" + var.getName() + index);
 				QueryModelNode parent = var.getParentNode();
 				parent.replaceChildNode(var, replacementVar);
-				replacementVar.setParentNode(parent);
 			}
 		}
 

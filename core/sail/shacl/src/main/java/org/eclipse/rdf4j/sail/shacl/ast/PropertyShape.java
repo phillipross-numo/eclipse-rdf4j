@@ -1,10 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
- ******************************************************************************/
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 package org.eclipse.rdf4j.sail.shacl.ast;
 
 import java.util.List;
@@ -14,10 +17,12 @@ import java.util.stream.Collectors;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
-import org.eclipse.rdf4j.sail.shacl.ShaclSail;
+import org.eclipse.rdf4j.sail.shacl.SourceConstraintComponent;
 import org.eclipse.rdf4j.sail.shacl.ValidationSettings;
+import org.eclipse.rdf4j.sail.shacl.ast.StatementMatcher.Variable;
 import org.eclipse.rdf4j.sail.shacl.ast.constraintcomponents.ConstraintComponent;
 import org.eclipse.rdf4j.sail.shacl.ast.paths.Path;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.EmptyNode;
@@ -58,13 +63,15 @@ public class PropertyShape extends Shape {
 		this.path = propertyShape.path;
 	}
 
-	public static PropertyShape getInstance(ShaclProperties properties, ShapeSource shapeSource, Cache cache,
-			ShaclSail shaclSail) {
+	public static PropertyShape getInstance(ShaclProperties properties, ShapeSource shapeSource,
+			ParseSettings parseSettings, Cache cache) {
+
 		Shape shape = cache.get(properties.getId());
+
 		if (shape == null) {
 			shape = new PropertyShape();
 			cache.put(properties.getId(), shape);
-			shape.populate(properties, shapeSource, cache, shaclSail);
+			shape.populate(properties, shapeSource, parseSettings, cache);
 		}
 
 		if (shape.constraintComponents.isEmpty()) {
@@ -75,9 +82,9 @@ public class PropertyShape extends Shape {
 	}
 
 	@Override
-	public void populate(ShaclProperties properties, ShapeSource connection,
-			Cache cache, ShaclSail shaclSail) {
-		super.populate(properties, connection, cache, shaclSail);
+	public void populate(ShaclProperties properties, ShapeSource connection, ParseSettings parseSettings, Cache cache) {
+
+		super.populate(properties, connection, parseSettings, cache);
 
 		this.path = Path.buildPath(connection, properties.getPath());
 
@@ -85,8 +92,7 @@ public class PropertyShape extends Shape {
 			throw new IllegalStateException(properties.getId() + " is a sh:PropertyShape without a sh:path!");
 		}
 
-		constraintComponents = getConstraintComponents(properties, connection, cache, shaclSail
-		);
+		constraintComponents = getConstraintComponents(properties, connection, parseSettings, cache);
 	}
 
 	@Override
@@ -133,13 +139,18 @@ public class PropertyShape extends Shape {
 			return ValidationQuery.Deactivated.getInstance();
 		}
 
+		if (!getPath().isSupported()) {
+			logger.error("Unsupported SHACL feature detected: {}. Shape ignored!\n{}", path, this);
+			return ValidationQuery.Deactivated.getInstance();
+		}
+
 		ValidationQuery validationQuery = constraintComponents.stream()
 				.map(c -> {
 					ValidationQuery validationQuery1 = c.generateSparqlValidationQuery(connectionsGroup,
 							validationSettings, negatePlan,
 							negateChildren, Scope.propertyShape);
 					if (!(c instanceof PropertyShape)) {
-						return validationQuery1.withConstraintComponent(c.getConstraintComponent());
+						return validationQuery1.withConstraintComponent(c);
 					}
 					return validationQuery1;
 				})
@@ -174,38 +185,14 @@ public class PropertyShape extends Shape {
 			return EmptyNode.getInstance();
 		}
 
+		if (!getPath().isSupported()) {
+			logger.error("Unsupported SHACL feature detected: {}. Shape ignored!\n{}", path, this);
+			return EmptyNode.getInstance();
+		}
+
 		PlanNode union = EmptyNode.getInstance();
 
-//		if (negatePlan) {
-//			assert overrideTargetNode == null : "Negated property shape with override target is not supported at the moment!";
-//
-//			PlanNode ret = EmptyNode.getInstance();
-//
-//			for (ConstraintComponent constraintComponent : constraintComponents) {
-//				PlanNode planNode = constraintComponent.generateTransactionalValidationPlan(connectionsGroup,
-//						logValidationPlans, () -> getAllLocalTargetsPlan(connectionsGroup, negatePlan), negateChildren,
-//						false, Scope.propertyShape);
-//
-//				PlanNode allTargetsPlan = getAllLocalTargetsPlan(connectionsGroup, negatePlan);
-//
-//				Unique invalid = Unique.getInstance(planNode);
-//
-//				PlanNode discardedLeft = new InnerJoin(allTargetsPlan, invalid)
-//						.getDiscardedLeft(BufferedPlanNode.class);
-//
-//				ret = UnionNode.getInstance(ret, discardedLeft);
-//
-//			}
-//
-//			return ret;
-//
-//		}
-
 		for (ConstraintComponent constraintComponent : constraintComponents) {
-			if (!getPath().isSupported()) {
-				logger.error("Unsupported path detected. Shape ignored! \n" + this);
-				continue;
-			}
 
 			PlanNode validationPlanNode = constraintComponent
 					.generateTransactionalValidationPlan(connectionsGroup, validationSettings, overrideTargetNode,
@@ -214,7 +201,7 @@ public class PropertyShape extends Shape {
 			if (!(constraintComponent instanceof PropertyShape)) {
 				validationPlanNode = new ValidationReportNode(validationPlanNode, t -> {
 					return new ValidationResult(t.getActiveTarget(), t.getValue(), this,
-							constraintComponent.getConstraintComponent(), getSeverity(), t.getScope(), t.getContexts(),
+							constraintComponent, getSeverity(), t.getScope(), t.getContexts(),
 							getContexts());
 				});
 			}
@@ -241,11 +228,14 @@ public class PropertyShape extends Shape {
 				.reduce(UnionNode::getInstanceDedupe)
 				.orElse(EmptyNode.getInstance());
 
-		planNode = UnionNode.getInstanceDedupe(planNode,
-				getTargetChain()
-						.getEffectiveTarget(Scope.propertyShape,
-								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider)
-						.getPlanNode(connectionsGroup, dataGraph, Scope.propertyShape, true, null));
+		if (connectionsGroup.getStats().hasRemoved()) {
+			PlanNode planNodeEffectiveTarget = getTargetChain()
+					.getEffectiveTarget(Scope.propertyShape, connectionsGroup.getRdfsSubClassOfReasoner(),
+							stableRandomVariableProvider)
+					.getPlanNode(connectionsGroup, dataGraph, Scope.propertyShape, true, null);
+
+			planNode = UnionNode.getInstanceDedupe(planNode, planNodeEffectiveTarget);
+		}
 
 		if (scope == Scope.propertyShape) {
 			planNode = Unique.getInstance(new TargetChainPopper(planNode), true);
@@ -271,6 +261,17 @@ public class PropertyShape extends Shape {
 	}
 
 	@Override
+	public boolean requiresEvaluation(ConnectionsGroup connectionsGroup, Scope scope, Resource[] dataGraph,
+			StatementMatcher.StableRandomVariableProvider stableRandomVariableProvider) {
+		if (!getPath().isSupported()) {
+			logger.error("Unsupported SHACL feature detected: {}. Shape ignored!\n{}", path, this);
+			return false;
+		}
+
+		return super.requiresEvaluation(connectionsGroup, scope, dataGraph, stableRandomVariableProvider);
+	}
+
+	@Override
 	public ConstraintComponent deepClone() {
 		PropertyShape nodeShape = new PropertyShape(this);
 
@@ -282,8 +283,8 @@ public class PropertyShape extends Shape {
 	}
 
 	@Override
-	public SparqlFragment buildSparqlValidNodes_rsx_targetShape(StatementMatcher.Variable subject,
-			StatementMatcher.Variable object,
+	public SparqlFragment buildSparqlValidNodes_rsx_targetShape(Variable<Value> subject,
+			Variable<Value> object,
 			RdfsSubClassOfReasoner rdfsSubClassOfReasoner, Scope scope,
 			StatementMatcher.StableRandomVariableProvider stableRandomVariableProvider) {
 
@@ -299,6 +300,11 @@ public class PropertyShape extends Shape {
 			return SparqlFragment.join(sparqlFragments);
 		}
 
+	}
+
+	@Override
+	public SourceConstraintComponent getConstraintComponent() {
+		return SourceConstraintComponent.PropertyConstraintComponent;
 	}
 
 }

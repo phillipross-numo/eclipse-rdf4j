@@ -18,10 +18,12 @@ rm -rf assembly/target/
 
 MVN_VERSION=$(xmllint --xpath "//*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
 
-#Clean, format, install and assembly
+#Clean, format and package
 echo "Building with Maven"
 mvn clean
-mvn -Passembly install -DskipTests -Dmaven.javadoc.skip=true -Dformatter.skip=true -Dimpsort.skip=true -Dxml-format.skip=true  -Djapicmp.skip -Denforcer.skip=true -Dbuildnumber.plugin.phase=none -Danimal.sniffer.skip=true
+mvn -T 2C formatter:format impsort:sort && mvn xml-format:xml-format
+mvn -T 2C compile package -DskipTests -Dmaven.javadoc.skip=true -Dformatter.skip=true -Dimpsort.skip=true -Dxml-format.skip=true  -Djapicmp.skip -Denforcer.skip=true -Dbuildnumber.plugin.phase=none -Ddefault-jar.phase=none -Danimal.sniffer.skip=true
+mvn -Passembly package -DskipTests -Dmaven.javadoc.skip=true -Dformatter.skip=true -Dimpsort.skip=true -Dxml-format.skip=true  -Djapicmp.skip -Denforcer.skip=true -Dbuildnumber.plugin.phase=none -Danimal.sniffer.skip=true
 
 # find .zip file
 ZIP=$(find assembly/target/*.zip)
@@ -34,17 +36,17 @@ cd "$CURRENT"
 
 # build
 echo "Building docker image"
-docker-compose build
+docker compose build --pull --no-cache
 
-docker tag docker_rdf4j:latest eclipse/rdf4j-workbench:${MVN_VERSION}
+docker tag docker-rdf4j:latest eclipse/rdf4j-workbench:${MVN_VERSION}
 
 echo "
 Docker image tagged as:
-  docker_rdf4j:latest
+  docker-rdf4j:latest
   eclipse/rdf4j-workbench:${MVN_VERSION}
 
 To start the workbench and server:
-    docker-compose up -d
+    docker compose up -d
 
 Workbench will be available at http://localhost:8080/rdf4j-workbench
 "

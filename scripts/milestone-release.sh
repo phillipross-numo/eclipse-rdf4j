@@ -54,18 +54,6 @@ if ! command -v xmllint &> /dev/null; then
     exit 1;
 fi
 
-# check Java version
-if  !  mvn -v | grep -q "Java version: 1.8."; then
-  echo "";
-  echo "Java 1.8 expected but not detected";
-  read -rp "Continue (y/n)?" choice
-  case "${choice}" in
-      y|Y ) echo "";;
-      n|N ) exit;;
-      * ) echo "unknown response, exiting"; exit;;
-  esac
-fi
-
 # check that we are on main or develop
 if  ! git status --porcelain --branch | grep -q "## main...origin/main"; then
   if  ! git status --porcelain --branch | grep -q "## develop...origin/develop"; then
@@ -124,8 +112,9 @@ if ! git push --dry-run > /dev/null 2>&1; then
 fi
 
 
-echo "Running mvn clean";
+echo "Running maven clean and install -DskipTests";
 mvn clean;
+mvn install -DskipTests;
 
 MVN_CURRENT_SNAPSHOT_VERSION=$(xmllint --xpath "//*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
 
@@ -148,7 +137,6 @@ MVN_VERSION_RELEASE=$(xmllint --xpath "//*[local-name()='project']/*[local-name(
 
 #Remove backup files. Finally, commit the version number changes:
 mvn versions:commit
-mvn -P compliance versions:commit
 
 
 BRANCH="releases/${MVN_VERSION_RELEASE}"
@@ -184,20 +172,28 @@ echo "(if you are on linux or windows, remember to use CTRL+SHIFT+C to copy)."
 echo "Log in, then choose 'Build with Parameters' and type in ${MVN_VERSION_RELEASE}"
 read -n 1 -srp "Press any key to continue (ctrl+c to cancel)"; printf "\n\n";
 
-mvn clean
+mvn clean -Dmaven.clean.failOnError=false
+
+git checkout develop
+mvn clean -Dmaven.clean.failOnError=false
+git checkout main
+mvn clean -Dmaven.clean.failOnError=false
 
 echo "Build javadocs"
 read -n 1 -srp "Press any key to continue (ctrl+c to cancel)"; printf "\n\n";
 
 git checkout "${MVN_VERSION_RELEASE}"
-mvn clean install -DskipTests -Djapicmp.skip
-mvn package -Passembly,!formatting -Djapicmp.skip -DskipTests --batch-mode
+mvn clean -Dmaven.clean.failOnError=false
+mvn clean
+mvn compile -Pquick -Dmaven.compiler.failOnError=false
+mvn package -Passembly -DskipTests
 
 git checkout main
 RELEASE_NOTES_BRANCH="${MVN_VERSION_RELEASE}-release-notes"
 git checkout -b "${RELEASE_NOTES_BRANCH}"
 
 tar -cvzf "site/static/javadoc/${MVN_VERSION_RELEASE}.tgz" -C target/site/apidocs .
+cp -f "site/static/javadoc/${MVN_VERSION_RELEASE}.tgz" "site/static/javadoc/latest.tgz"
 git add --all
 git commit -s -a -m "javadocs for ${MVN_VERSION_RELEASE}"
 git push --set-upstream origin "${RELEASE_NOTES_BRANCH}"
@@ -215,7 +211,7 @@ echo "DONE!"
 
 echo ""
 echo "You will now want to inform the community about the new milestone build!"
-echo " - Check if all recently completed issues have the correct milestone: https://github.com/eclipse/rdf4j/projects/19"
+echo " - Check if all recently completed issues have the correct milestone: https://github.com/eclipse/rdf4j/issues?q=is%3Aissue+no%3Amilestone+-label%3A%22cannot+reproduce%22+-label%3A%22%F0%9F%94%A7+internal+task%22+-label%3Awontfix+-label%3Astale+-label%3Aduplicate+sort%3Aupdated-desc+is%3Aclosed"
 echo " - For issues closed in the current milestone, those issues need to be tagged with the RDF4J milestone number (use Github labels M1, M2 or M3)"
 echo "Remember that milestone builds are not releases!"
 

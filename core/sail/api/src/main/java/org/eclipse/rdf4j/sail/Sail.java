@@ -1,15 +1,21 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Supplier;
 
+import org.eclipse.rdf4j.collection.factory.api.CollectionFactory;
+import org.eclipse.rdf4j.collection.factory.impl.DefaultCollectionFactory;
 import org.eclipse.rdf4j.common.transaction.IsolationLevel;
 import org.eclipse.rdf4j.model.ValueFactory;
 
@@ -43,7 +49,6 @@ public interface Sail {
 	 * method is called. Please consult the specific Sail implementation for information about the relevant parameters.
 	 *
 	 * @throws SailException If the Sail could not be initialized.
-	 *
 	 * @since 2.5
 	 */
 	void init() throws SailException;
@@ -94,4 +99,12 @@ public interface Sail {
 	 */
 	IsolationLevel getDefaultIsolationLevel();
 
+	/**
+	 * Gets a CollectionFactory that may be optimized for this store and may or may not use disk or other resources.
+	 *
+	 * @return a CollectionFactory
+	 */
+	default Supplier<CollectionFactory> getCollectionFactory() {
+		return DefaultCollectionFactory::new;
+	}
 }

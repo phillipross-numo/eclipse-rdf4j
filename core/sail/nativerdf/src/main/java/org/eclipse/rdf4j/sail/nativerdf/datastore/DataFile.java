@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.nativerdf.datastore;
 
@@ -177,7 +180,7 @@ public class DataFile implements Closeable {
 	 *
 	 * @param offset An offset in the data file, must be larger than 0.
 	 * @return The data that was found on the specified offset.
-	 * @exception IOException If an I/O error occurred.
+	 * @throws IOException If an I/O error occurred.
 	 */
 	public byte[] getData(long offset) throws IOException {
 		assert offset > 0 : "offset must be larger than 0, is: " + offset;

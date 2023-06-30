@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2022 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.shacl;
 
@@ -26,7 +29,6 @@ import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.eclipse.rdf4j.sail.shacl.ast.planNodes.EmptyNode;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.PlanNode;
 import org.eclipse.rdf4j.sail.shacl.wrapper.data.ConnectionsGroup;
 import org.junit.jupiter.api.Assertions;
@@ -44,7 +46,6 @@ public class ShapesGraphTest {
 	static final private IRI laura = Values.iri(EX, "laura");
 	static final private IRI steve = Values.iri(EX, "steve");
 	static final private IRI olivia = Values.iri(EX, "olivia");
-	static final private IRI charlie = Values.iri(EX, "charlie");
 
 	@Test
 	public void testValidSplitAcrossGraphs() throws Throwable {
@@ -177,7 +178,7 @@ public class ShapesGraphTest {
 			connection.begin();
 			connection.addStatement(Values.bnode(), RDF.TYPE, FOAF.PERSON, data1);
 
-			connection.prepareValidation();
+			connection.prepareValidation(new ValidationSettings());
 
 			try (ConnectionsGroup connectionsGroup = connection.getConnectionsGroup()) {
 
@@ -186,7 +187,7 @@ public class ShapesGraphTest {
 						.stream()
 						.flatMap(s -> s.getShapes().stream())
 						.map(shape -> shape.generatePlans(connectionsGroup, new ValidationSettings()))
-						.filter(s -> !(s instanceof EmptyNode))
+						.filter(s -> !(s.isGuaranteedEmpty()))
 						.collect(Collectors.toList());
 
 				Assertions.assertEquals(0, collect.size());

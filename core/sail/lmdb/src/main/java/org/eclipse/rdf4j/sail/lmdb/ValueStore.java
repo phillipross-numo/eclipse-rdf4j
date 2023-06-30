@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.lmdb;
 
@@ -122,7 +125,9 @@ class ValueStore extends AbstractValueFactory {
 	private long writeTxn;
 	private final boolean forceSync;
 	private final boolean autoGrow;
-	/** This lock is required to block transactions while auto-growing the map size. */
+	/**
+	 * This lock is required to block transactions while auto-growing the map size.
+	 */
 	private final ReadWriteLock txnLock = new ReentrantReadWriteLock();
 
 	/**
@@ -274,7 +279,7 @@ class ValueStore extends AbstractValueFactory {
 
 	/**
 	 * Get value from cache by ID.
-	 *
+	 * <p>
 	 * Thread-safety with synchronized is not required here.
 	 *
 	 * @param id ID of a value object
@@ -290,7 +295,7 @@ class ValueStore extends AbstractValueFactory {
 
 	/**
 	 * Cache value by ID.
-	 *
+	 * <p>
 	 * Thread-safety with synchronized is not required here.
 	 *
 	 * @param id    ID of a value object

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2019 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.federated.evaluation;
 
@@ -43,7 +46,6 @@ import org.slf4j.LoggerFactory;
  * A triple source to be used on any repository.
  *
  * @author Andreas Schwarte
- *
  */
 public class SailTripleSource extends TripleSourceBase {
 
@@ -69,27 +71,36 @@ public class SailTripleSource extends TripleSourceBase {
 			// TODO we need to fix this here: if the dataset contains FROM NAMED, we cannot use
 			// the API and require to write as query
 
-			RepositoryResult<Statement> repoResult = conn.getStatements((Resource) subjValue, (IRI) predValue, objValue,
-					queryInfo.getIncludeInferred(), FedXUtil.toContexts(stmt, queryInfo.getDataset()));
+			RepositoryResult<Statement> repoResult = null;
+			try {
+				repoResult = conn.getStatements((Resource) subjValue, (IRI) predValue, objValue,
+						queryInfo.getIncludeInferred(), FedXUtil.toContexts(stmt, queryInfo.getDataset()));
 
-			// XXX implementation remark and TODO taken from Sesame
-			// The same variable might have been used multiple times in this
-			// StatementPattern, verify value equality in those cases.
+				// XXX implementation remark and TODO taken from Sesame
+				// The same variable might have been used multiple times in this
+				// StatementPattern, verify value equality in those cases.
 
-			// an iterator that converts the statements to var bindings
-			resultHolder.set(new StatementConversionIteration(repoResult, bindings, stmt));
+				// an iterator that converts the statements to var bindings
+				resultHolder.set(new StatementConversionIteration(repoResult, bindings, stmt));
 
-			// if filter is set, apply it
-			if (filterExpr != null) {
-				FilteringIteration filteredRes = new FilteringIteration(filterExpr, resultHolder.get(),
-						queryInfo.getStrategy());
-				if (!filteredRes.hasNext()) {
-					filteredRes.close();
-					resultHolder.set(new EmptyIteration<>());
-					return;
+				// if filter is set, apply it
+				if (filterExpr != null) {
+					FilteringIteration filteredRes = new FilteringIteration(filterExpr, resultHolder.get(),
+							queryInfo.getStrategy());
+					if (!filteredRes.hasNext()) {
+						filteredRes.close();
+						resultHolder.set(new EmptyIteration<>());
+						return;
+					}
+					resultHolder.set(filteredRes);
 				}
-				resultHolder.set(filteredRes);
+			} catch (Throwable t) {
+				if (repoResult != null) {
+					repoResult.close();
+				}
+				throw t;
 			}
+
 		});
 	}
 
@@ -101,19 +112,28 @@ public class SailTripleSource extends TripleSourceBase {
 
 		return withConnection((conn, resultHolder) -> {
 
-			RepositoryResult<Statement> repoResult = conn.getStatements(subj, pred, obj,
-					queryInfo.getIncludeInferred(), contexts);
+			RepositoryResult<Statement> repoResult = null;
+			try {
+				repoResult = conn.getStatements(subj, pred, obj,
+						queryInfo.getIncludeInferred(), contexts);
 
-			// XXX implementation remark and TODO taken from Sesame
-			// The same variable might have been used multiple times in this
-			// StatementPattern, verify value equality in those cases.
+// XXX implementation remark and TODO taken from Sesame
+				// The same variable might have been used multiple times in this
+				// StatementPattern, verify value equality in those cases.
 
-			resultHolder.set(new ExceptionConvertingIteration<>(repoResult) {
-				@Override
-				protected QueryEvaluationException convert(Exception arg0) {
-					return new QueryEvaluationException(arg0);
+				resultHolder.set(new ExceptionConvertingIteration<>(repoResult) {
+					@Override
+					protected QueryEvaluationException convert(Exception arg0) {
+						return new QueryEvaluationException(arg0);
+					}
+				});
+			} catch (Throwable t) {
+				if (repoResult != null) {
+					repoResult.close();
 				}
-			});
+				throw t;
+			}
+
 		});
 	}
 
@@ -169,31 +189,40 @@ public class SailTripleSource extends TripleSourceBase {
 		 */
 		return withConnection((conn, resultHolder) -> {
 
-			CloseableIteration<BindingSet, QueryEvaluationException> res;
 			SailConnection sailConn = ((SailRepositoryConnection) conn).getSailConnection();
 
+			PrecompiledQueryNode precompiledQueryNode = null;
 			try {
-
 				// optimization attempt: use precompiled query
-				PrecompiledQueryNode precompiledQueryNode = new PrecompiledQueryNode(preparedQuery);
-				res = (CloseableIteration<BindingSet, QueryEvaluationException>) sailConn.evaluate(precompiledQueryNode,
-						null, EmptyBindingSet.getInstance(), queryInfo.getIncludeInferred());
-
+				precompiledQueryNode = new PrecompiledQueryNode(preparedQuery);
 			} catch (Exception e) {
-				log.warn(
-						"Precompiled query optimization for native store could not be applied: " + e.getMessage());
+				log.warn("Precompiled query optimization for native store could not be applied: " + e.getMessage());
 				log.debug("Details:", e);
-
-				// fallback: attempt the original tuple expression
-				res = (CloseableIteration<BindingSet, QueryEvaluationException>) sailConn.evaluate(preparedQuery,
-						null, EmptyBindingSet.getInstance(), queryInfo.getIncludeInferred());
 			}
 
-			if (bindings.size() > 0) {
-				res = new InsertBindingsIteration(res, bindings);
+			CloseableIteration<BindingSet, QueryEvaluationException> res = null;
+			try {
+				if (precompiledQueryNode != null) {
+					res = (CloseableIteration<BindingSet, QueryEvaluationException>) sailConn.evaluate(
+							precompiledQueryNode, null, EmptyBindingSet.getInstance(), queryInfo.getIncludeInferred());
+				} else {
+					// fallback: attempt the original tuple expression
+					res = (CloseableIteration<BindingSet, QueryEvaluationException>) sailConn.evaluate(preparedQuery,
+							null, EmptyBindingSet.getInstance(), queryInfo.getIncludeInferred());
+				}
+
+				if (bindings.size() > 0) {
+					res = new InsertBindingsIteration(res, bindings);
+				}
+
+				resultHolder.set(res);
+			} catch (Throwable t) {
+				if (res != null) {
+					res.close();
+				}
+				throw t;
 			}
 
-			resultHolder.set(res);
 		});
 	}
 }

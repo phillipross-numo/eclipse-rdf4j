@@ -1,13 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.util;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -16,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.transaction.QueryEvaluationMode;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -34,8 +38,8 @@ import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.federation.FederatedService;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.EvaluationStatistics;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.QueryEvaluationContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author james
@@ -85,13 +89,23 @@ public class OrderComparatorTest {
 		@Override
 		public void setOptimizerPipeline(QueryOptimizerPipeline pipeline) {
 			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public TupleExpr optimize(TupleExpr expr, EvaluationStatistics evaluationStatistics, BindingSet bindings) {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		@Override
+		public QueryEvaluationMode getQueryEvaluationMode() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void setQueryEvaluationMode(QueryEvaluationMode queryEvaluationMode) {
+			// TODO Auto-generated method stub
+
 		}
 	}
 
@@ -207,7 +221,7 @@ public class OrderComparatorTest {
 		assertTrue(sud.compare(a, b) != sud.compare(b, a));
 	}
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 		asc.setAscending(true);
 		desc.setAscending(false);

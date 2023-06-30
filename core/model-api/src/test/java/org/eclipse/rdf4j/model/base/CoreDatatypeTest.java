@@ -1,11 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2022 Eclipse RDF4J contributors.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Distribution License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/org/documents/edl-v10.php.
- ******************************************************************************/
-
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 package org.eclipse.rdf4j.model.base;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,8 +20,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CoreDatatypeTest {
 
@@ -39,7 +40,7 @@ public class CoreDatatypeTest {
 				.map(CoreDatatype::getIri)
 				.map(Object::toString)
 				.collect(Collectors.toList());
-		Assert.assertEquals(datatypeIRIs, datatypeIRIsSortedByEnum);
+		assertEquals(datatypeIRIs, datatypeIRIsSortedByEnum);
 
 	}
 
@@ -59,7 +60,7 @@ public class CoreDatatypeTest {
 				.map(CoreDatatype::getIri)
 				.map(Object::toString)
 				.collect(Collectors.toList());
-		Assert.assertEquals(datatypeIRIs, datatypeIRIsSortedByEnum);
+		assertEquals(datatypeIRIs, datatypeIRIsSortedByEnum);
 
 	}
 

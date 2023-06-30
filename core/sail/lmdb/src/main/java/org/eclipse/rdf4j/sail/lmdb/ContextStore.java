@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.lmdb;
 
@@ -43,7 +46,7 @@ import org.slf4j.LoggerFactory;
  *  byte 4           : the file format version
  *  byte 5-8         : the number of mapped contexts contained in the file, as an int.
  * </pre>
- *
+ * <p>
  * Each context is encoded in the file as a record, as follows:
  *
  * <pre>
@@ -52,8 +55,6 @@ import org.slf4j.LoggerFactory;
  *   byte 10 - 11    : the length of the encoded context identifier
  *   byte 12 - A     : the UTF-8 encoded the encoded context identifer
  * </pre>
- *
- *
  */
 class ContextStore implements Iterable<Resource> {
 

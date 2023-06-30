@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl;
@@ -19,7 +22,6 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-import org.eclipse.rdf4j.sail.shacl.ast.planNodes.EmptyNode;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.PlanNode;
 import org.eclipse.rdf4j.sail.shacl.wrapper.data.ConnectionsGroup;
 import org.junit.jupiter.api.Assertions;
@@ -42,7 +44,7 @@ public class ReduceNumberOfPlansTest {
 		try (ShaclSailConnection connection = (ShaclSailConnection) shaclSail.getConnection()) {
 			connection.begin();
 
-			connection.prepareValidation();
+			connection.prepareValidation(new ValidationSettings());
 
 			try (ConnectionsGroup connectionsGroup = connection.getConnectionsGroup()) {
 
@@ -51,7 +53,7 @@ public class ReduceNumberOfPlansTest {
 						.stream()
 						.flatMap(s -> s.getShapes().stream())
 						.map(shape -> shape.generatePlans(connectionsGroup, new ValidationSettings()))
-						.filter(s -> !(s instanceof EmptyNode))
+						.filter(s -> !(s.isGuaranteedEmpty()))
 						.collect(Collectors.toList());
 
 				Assertions.assertEquals(0, collect.size());
@@ -59,7 +61,7 @@ public class ReduceNumberOfPlansTest {
 			IRI person1 = Utils.Ex.createIri();
 			connection.addStatement(person1, RDF.TYPE, Utils.Ex.Person);
 
-			connection.prepareValidation();
+			connection.prepareValidation(new ValidationSettings());
 
 			try (ConnectionsGroup connectionsGroup = connection.getConnectionsGroup()) {
 
@@ -68,7 +70,7 @@ public class ReduceNumberOfPlansTest {
 						.stream()
 						.flatMap(s -> s.getShapes().stream())
 						.map(shape -> shape.generatePlans(connectionsGroup, new ValidationSettings()))
-						.filter(s -> !(s instanceof EmptyNode))
+						.filter(s -> !(s.isGuaranteedEmpty()))
 						.collect(Collectors.toList());
 				Assertions.assertEquals(2, collect2.size());
 
@@ -112,7 +114,7 @@ public class ReduceNumberOfPlansTest {
 
 			connection.removeStatements(person1, Utils.Ex.ssn, vf.createLiteral("b"));
 
-			connection.prepareValidation();
+			connection.prepareValidation(new ValidationSettings());
 
 			try (ConnectionsGroup connectionsGroup = connection.getConnectionsGroup()) {
 
@@ -121,7 +123,7 @@ public class ReduceNumberOfPlansTest {
 						.stream()
 						.flatMap(s -> s.getShapes().stream())
 						.map(shape -> shape.generatePlans(connectionsGroup, new ValidationSettings()))
-						.filter(s -> !(s instanceof EmptyNode))
+						.filter(s -> !(s.isGuaranteedEmpty()))
 						.collect(Collectors.toList());
 				Assertions.assertEquals(1, collect1.size());
 
@@ -129,7 +131,7 @@ public class ReduceNumberOfPlansTest {
 
 			connection.removeStatements(person1, Utils.Ex.ssn, vf.createLiteral("a"));
 
-			connection.prepareValidation();
+			connection.prepareValidation(new ValidationSettings());
 
 			try (ConnectionsGroup connectionsGroup = connection.getConnectionsGroup()) {
 
@@ -138,14 +140,14 @@ public class ReduceNumberOfPlansTest {
 						.stream()
 						.flatMap(s -> s.getShapes().stream())
 						.map(shape -> shape.generatePlans(connectionsGroup, new ValidationSettings()))
-						.filter(s -> !(s instanceof EmptyNode))
+						.filter(s -> !(s.isGuaranteedEmpty()))
 
 						.collect(Collectors.toList());
 				Assertions.assertEquals(1, collect2.size());
 			}
 			connection.removeStatements(person1, Utils.Ex.name, vf.createLiteral("c"));
 
-			connection.prepareValidation();
+			connection.prepareValidation(new ValidationSettings());
 
 			try (ConnectionsGroup connectionsGroup = connection.getConnectionsGroup()) {
 
@@ -154,7 +156,7 @@ public class ReduceNumberOfPlansTest {
 						.stream()
 						.flatMap(s -> s.getShapes().stream())
 						.map(shape -> shape.generatePlans(connectionsGroup, new ValidationSettings()))
-						.filter(s -> !(s instanceof EmptyNode))
+						.filter(s -> !(s.isGuaranteedEmpty()))
 
 						.collect(Collectors.toList());
 				Assertions.assertEquals(2, collect3.size());

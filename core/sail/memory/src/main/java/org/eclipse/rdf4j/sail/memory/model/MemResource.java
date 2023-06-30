@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.memory.model;
 
@@ -32,15 +35,11 @@ public abstract class MemResource implements MemValue, Resource {
 		return subjectStatements.size();
 	}
 
-	public void addSubjectStatement(MemStatement st) {
+	public void addSubjectStatement(MemStatement st) throws InterruptedException {
 		subjectStatements.add(st);
 	}
 
-	public void removeSubjectStatement(MemStatement st) {
-		subjectStatements.remove(st);
-	}
-
-	public void cleanSnapshotsFromSubjectStatements(int currentSnapshot) {
+	public void cleanSnapshotsFromSubjectStatements(int currentSnapshot) throws InterruptedException {
 		subjectStatements.cleanSnapshots(currentSnapshot);
 	}
 
@@ -48,74 +47,6 @@ public abstract class MemResource implements MemValue, Resource {
 	public boolean hasSubjectStatements() {
 		return !subjectStatements.isEmpty();
 	}
-
-//
-//	MemStatementList getSubjectStatementList();
-//
-//	/**
-//	 * Gets the number of statements for which this MemResource is the subject.
-//	 *
-//	 * @return An integer larger than or equal to 0.
-//	 */
-//	int getSubjectStatementCount();
-//
-//	/**
-//	 * Adds a statement to this MemResource's list of statements for which it is the subject.
-//	 *
-//	 * @param st
-//	 */
-//	void addSubjectStatement(MemStatement st);
-//
-//	/**
-//	 * Removes a statement from this MemResource's list of statements for which it is the subject.
-//	 *
-//	 * @param st
-//	 */
-//	void removeSubjectStatement(MemStatement st);
-//
-//	/**
-//	 * Removes statements from old snapshots (those that have expired at or before the specified snapshot version) from
-//	 * this MemValue's list of statements for which it is the subject.
-//	 *
-//	 * @param currentSnapshot The current snapshot version.
-//	 */
-//	void cleanSnapshotsFromSubjectStatements(int currentSnapshot);
-//
-//	/**
-//	 * Gets the list of statements for which this MemResource represents the context.
-//	 *
-//	 * @return a MemStatementList containing the statements.
-//	 */
-//	MemStatementList getContextStatementList();
-//
-//	/**
-//	 * Gets the number of statements for which this MemResource represents the context.
-//	 *
-//	 * @return An integer larger than or equal to 0.
-//	 */
-//	int getContextStatementCount();
-//
-//	/**
-//	 * Adds a statement to this MemResource's list of statements for which it represents the context.
-//	 *
-//	 * @param st
-//	 */
-//	void addContextStatement(MemStatement st);
-//
-//	/**
-//	 * Removes a statement from this MemResource's list of statements for which it represents the context.
-//	 *
-//	 * @param st
-//	 */
-//	void removeContextStatement(MemStatement st);
-//
-//	/**
-//	 * Removes statements from old snapshots (those that have expired at or before the specified snapshot version) from
-//	 * this MemValue's list of statements for which it is the context.
-//	 *
-//	 * @param currentSnapshot The current snapshot version.
-//	 */
-//	void cleanSnapshotsFromContextStatements(int currentSnapshot);
 
 	@Override
 	public boolean hasContextStatements() {
@@ -130,15 +61,11 @@ public abstract class MemResource implements MemValue, Resource {
 		return contextStatements.size();
 	}
 
-	public void addContextStatement(MemStatement st) {
+	public void addContextStatement(MemStatement st) throws InterruptedException {
 		contextStatements.add(st);
 	}
 
-	public void removeContextStatement(MemStatement st) {
-		contextStatements.remove(st);
-	}
-
-	public void cleanSnapshotsFromContextStatements(int currentSnapshot) {
+	public void cleanSnapshotsFromContextStatements(int currentSnapshot) throws InterruptedException {
 		contextStatements.cleanSnapshots(currentSnapshot);
 	}
 }

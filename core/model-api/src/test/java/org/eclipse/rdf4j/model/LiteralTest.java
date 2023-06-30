@@ -1,10 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
- ******************************************************************************/
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 package org.eclipse.rdf4j.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -12,8 +15,16 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.DateTimeException;
@@ -38,7 +49,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.eclipse.rdf4j.model.base.CoreDatatype;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Abstract {@link Literal} test suite.
@@ -79,7 +90,6 @@ public abstract class LiteralTest {
 	 * Creates a test literal instance.
 	 *
 	 * @param label the label of the literal
-	 *
 	 * @return a new instance of the concrete literal class under test
 	 */
 	protected abstract Literal literal(String label);
@@ -89,7 +99,6 @@ public abstract class LiteralTest {
 	 *
 	 * @param label    the label of the literal
 	 * @param language the language of the literal
-	 *
 	 * @return a new instance of the concrete literal class under test
 	 */
 	protected abstract Literal literal(String label, String language);
@@ -99,7 +108,6 @@ public abstract class LiteralTest {
 	 *
 	 * @param label    the label of the literal
 	 * @param datatype the datatype of the literal
-	 *
 	 * @return a new instance of the concrete literal class under test
 	 */
 	protected abstract Literal literal(String label, IRI datatype);
@@ -109,7 +117,6 @@ public abstract class LiteralTest {
 	 *
 	 * @param label    the label of the literal
 	 * @param datatype the CoreDatatype of the literal
-	 *
 	 * @return a new instance of the concrete literal class under test
 	 */
 	protected abstract Literal literal(String label, CoreDatatype datatype);
@@ -118,7 +125,6 @@ public abstract class LiteralTest {
 	 * Creates a test datatype IRI instance.
 	 *
 	 * @param iri the IRI of the datatype
-	 *
 	 * @return a new instance of the concrete datatype class under test
 	 */
 	protected abstract IRI datatype(String iri);
@@ -889,9 +895,9 @@ public abstract class LiteralTest {
 
 	}
 
-	@Test(expected = NullPointerException.class)
+	@Test
 	public final void testCoreDatatypeTypedConstructorNullDatatype() {
-		literal("label", ((CoreDatatype) null));
+		assertThrows(NullPointerException.class, () -> literal("label", ((CoreDatatype) null)));
 	}
 
 	//// String Value //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1499,6 +1505,69 @@ public abstract class LiteralTest {
 
 		assertThat(plain).isEqualTo(typed);
 		assertThat(plain.hashCode()).isEqualTo(typed.hashCode());
+	}
+
+	@Test
+	public final void testSerializationWithCoreDatatypeXsd() {
+		Literal literal = literal("1", datatype(XSD_INT));
+
+		byte[] bytes = objectToBytes(literal);
+		Literal roundTrip = (Literal) bytesToObject(bytes);
+
+		assertEquals(CoreDatatype.XSD.INT, roundTrip.getCoreDatatype());
+	}
+
+	@Test
+	public final void testSerializationWithCoreDatatypeRdfLangString() {
+		Literal literal = literal("hei", "no");
+		assertEquals(CoreDatatype.RDF.LANGSTRING, literal.getCoreDatatype());
+
+		byte[] bytes = objectToBytes(literal);
+		Literal roundTrip = (Literal) bytesToObject(bytes);
+
+		assertEquals(CoreDatatype.RDF.LANGSTRING, roundTrip.getCoreDatatype());
+	}
+
+	@Test
+	public final void testSerializationWithCoreDatatypeGEO() {
+		Literal literal = literal("1", CoreDatatype.GEO.WKT_LITERAL);
+
+		byte[] bytes = objectToBytes(literal);
+		Literal roundTrip = (Literal) bytesToObject(bytes);
+
+		assertEquals(CoreDatatype.GEO.WKT_LITERAL, roundTrip.getCoreDatatype());
+	}
+
+	@Test
+	public final void testSerializationWithCoreDatatype4() {
+		Literal literal = literal("1", datatype("http://example.org/dt1"));
+		assertEquals(CoreDatatype.XSD.NONE, literal.getCoreDatatype());
+
+		byte[] bytes = objectToBytes(literal);
+		Literal roundTrip = (Literal) bytesToObject(bytes);
+
+		assertEquals(CoreDatatype.XSD.NONE, roundTrip.getCoreDatatype());
+	}
+
+	private byte[] objectToBytes(Serializable object) {
+		try (var byteArrayOutputStream = new ByteArrayOutputStream()) {
+			try (var objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+				objectOutputStream.writeObject(object);
+			}
+			return byteArrayOutputStream.toByteArray();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Object bytesToObject(byte[] str) {
+		try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(str)) {
+			try (ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+				return objectInputStream.readObject();
+			}
+		} catch (IOException | ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

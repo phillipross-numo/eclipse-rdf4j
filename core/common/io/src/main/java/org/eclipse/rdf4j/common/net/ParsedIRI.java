@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2017 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.common.net;
@@ -69,11 +72,11 @@ import java.util.List;
  * and the path <i>/bar/jar.jar!/baz/entry.txt</i>.
  *
  * @author James Leigh
- * @since 2.3
  * @see <a href="http://www.ietf.org/rfc/rfc3987.txt"><i>RFC&nbsp;3987: Internationalized Resource Identifiers
  *      (IRIs)</i></a>
  * @see <a href="http://www.ietf.org/rfc/rfc3986.txt"><i>RFC&nbsp;3986: Uniform Resource Identifiers (URI): Generic
  *      Syntax</i></a>
+ * @since 2.3
  */
 public class ParsedIRI implements Cloneable, Serializable {
 
@@ -531,10 +534,10 @@ public class ParsedIRI implements Cloneable, Serializable {
 	/**
 	 * Resolves the given IRI against this ParsedIRI.
 	 *
-	 * @see #resolve(ParsedIRI)
 	 * @param iri The IRI to be resolved against this ParsedIRI
 	 * @return The resulting IRI
 	 * @throws NullPointerException If {@code relative} is {@code null}
+	 * @see #resolve(ParsedIRI)
 	 */
 	public String resolve(String iri) {
 		return resolve(ParsedIRI.create(iri)).toString();
@@ -657,10 +660,10 @@ public class ParsedIRI implements Cloneable, Serializable {
 	/**
 	 * Relativizes the given IRI against this ParsedIRI.
 	 *
-	 * @see #relativize(ParsedIRI)
 	 * @param iri The IRI to be relativized against this ParsedIRI
 	 * @return The resulting IRI
 	 * @throws NullPointerException If {@code absolute} is {@code null}
+	 * @see #relativize(ParsedIRI)
 	 */
 	public String relativize(String iri) {
 		return relativize(ParsedIRI.create(iri)).toString();

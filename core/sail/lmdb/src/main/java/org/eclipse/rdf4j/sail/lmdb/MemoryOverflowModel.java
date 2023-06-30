@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.lmdb;
 
@@ -37,7 +40,6 @@ import org.slf4j.LoggerFactory;
  * Model implementation that stores in a {@link LinkedHashModel} until more than 10KB statements are added and the
  * estimated memory usage is more than the amount of free memory available. Once the threshold is cross this
  * implementation seamlessly changes to a disk based {@link SailSourceModel}.
- *
  */
 abstract class MemoryOverflowModel extends AbstractModel {
 

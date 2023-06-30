@@ -1,13 +1,17 @@
 /*******************************************************************************
- Copyright (c) 2018 Eclipse RDF4J contributors.
- All rights reserved. This program and the accompanying materials
- are made available under the terms of the Eclipse Distribution License v1.0
- which accompanies this distribution, and is available at
- http://www.eclipse.org/org/documents/edl-v10.php.
+ * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sparqlbuilder.examples.updatespec;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPatterns.and;
 import static org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf.iri;
 
@@ -32,8 +36,7 @@ import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPatterns;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.TriplePattern;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.Iri;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Follows the SPARQL 1.1 Update Spec starting <a href="https://www.w3.org/TR/sparql11-update/#graphManagement">here</a>
@@ -56,7 +59,7 @@ public class Section3Test extends BaseExamples {
 		insertDataQuery.prefix(dc)
 				.insertData(iri("http://example/book1").has(dc.iri("title"), Rdf.literalOf("A new book"))
 						.andHas(dc.iri("creator"), Rdf.literalOf("A.N.Other")));
-		Assert.assertThat(insertDataQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(insertDataQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX dc: <http://purl.org/dc/elements/1.1/> "
 						+ "INSERT DATA { "
 						+ "<http://example/book1> dc:title \"A new book\" ;\n"
@@ -77,7 +80,7 @@ public class Section3Test extends BaseExamples {
 				.insertData(iri("http://example/book1").has(ns.iri("price"), Rdf.literalOf(42)))
 				.into(iri("http://example/bookStore"));
 
-		Assert.assertThat(insertDataQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(insertDataQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX dc: <http://purl.org/dc/elements/1.1/> "
 						+ "PREFIX ns: <https://example.org/ns#> "
 						+ "INSERT DATA { GRAPH "
@@ -88,7 +91,7 @@ public class Section3Test extends BaseExamples {
 
 	/**
 	 * PREFIX dc: <http://purl.org/dc/elements/1.1/>
-	 *
+	 * <p>
 	 * DELETE DATA { <http://example/book2> dc:title "David Copperfield" ; dc:creator "Edmund Wells" . }
 	 */
 	@Test
@@ -98,7 +101,7 @@ public class Section3Test extends BaseExamples {
 		deleteDataQuery.deleteData(iri("http://example/book2").has(dc.iri("title"), Rdf.literalOf("David Copperfield"))
 				.andHas(dc.iri("creator"), Rdf.literalOf("Edmund Wells")));
 
-		Assert.assertThat(deleteDataQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(deleteDataQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX dc: <http://purl.org/dc/elements/1.1/>\n"
 						+ "DELETE DATA { "
 						+ "<http://example/book2> dc:title \"David Copperfield\" ; "
@@ -110,7 +113,7 @@ public class Section3Test extends BaseExamples {
 	/**
 	 * PREFIX dc: <http://purl.org/dc/elements/1.1/> DELETE DATA { GRAPH <http://example/bookStore> {
 	 * <http://example/book1> dc:title "Fundamentals of Compiler Desing" } } ;
-	 *
+	 * <p>
 	 * PREFIX dc: <http://purl.org/dc/elements/1.1/> INSERT DATA { GRAPH <http://example/bookStore> {
 	 * <http://example/book1> dc:title "Fundamentals of Compiler Design" } }
 	 */
@@ -123,7 +126,7 @@ public class Section3Test extends BaseExamples {
 				.prefix(dc)
 				.deleteData(exampleBook.has(title, "Fundamentals of Compiler Desing"))
 				.from(bookStore);
-		Assert.assertThat(deleteTypoQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(deleteTypoQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX dc: <http://purl.org/dc/elements/1.1/> "
 						+ "DELETE DATA { "
 						+ "GRAPH <http://example/bookStore> {\n"
@@ -134,7 +137,7 @@ public class Section3Test extends BaseExamples {
 				.prefix(dc)
 				.insertData(exampleBook.has(title, "Fundamentals of Compiler Design"))
 				.into(bookStore);
-		Assert.assertThat(insertFixedTitleQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(insertFixedTitleQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX dc: <http://purl.org/dc/elements/1.1/> "
 						+ "INSERT DATA { "
 						+ "GRAPH <http://example/bookStore> {\n"
@@ -153,14 +156,14 @@ public class Section3Test extends BaseExamples {
 
 		// WITH <g1> DELETE { a b c } INSERT { x y z } WHERE { ... }
 		modify.with(g1).delete(abc).insert(xyz).where(examplePattern);
-		Assert.assertThat(modify.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(modify.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"WITH <g1> DELETE { ?a ?b ?c . } INSERT { ?x ?y ?z . } where { ... }"
 		));
 
 		// DELETE { GRAPH <g1> { a b c } } INSERT { GRAPH <g1> { x y z } } USING <g1>
 		// WHERE { ... }
 		modify.with((Iri) null).delete(abc).from(g1).insert(xyz).into(g1).using(g1).where(examplePattern);
-		Assert.assertThat(modify.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(modify.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"DELETE { GRAPH <g1> {?a ?b ?c . } } "
 						+ "INSERT { GRAPH <g1> { ?x ?y ?z .} } "
 						+ "USING <g1> WHERE { ... }"
@@ -169,7 +172,7 @@ public class Section3Test extends BaseExamples {
 
 	/**
 	 * PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-	 *
+	 * <p>
 	 * WITH <http://example/addresses> DELETE { ?person foaf:givenName 'Bill' } INSERT { ?person foaf:givenName
 	 * 'William' } WHERE { ?person foaf:givenName 'Bill' }
 	 */
@@ -184,7 +187,7 @@ public class Section3Test extends BaseExamples {
 				.insert(person.has(foaf.iri("givenName"), "William"))
 				.where(person.has(foaf.iri("givenName"), "Bill"));
 
-		Assert.assertThat(modify.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(modify.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "WITH <http://example/addresses> "
 						+ "DELETE { ?person foaf:givenName \"Bill\" .} "
@@ -195,7 +198,7 @@ public class Section3Test extends BaseExamples {
 
 	/**
 	 * PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-	 *
+	 * <p>
 	 * DELETE { ?book ?p ?v } WHERE { ?book dc:date ?date . FILTER ( ?date > "1970-01-01T00:00:00-02:00"^^xsd:dateTime )
 	 * ?book ?p ?v }
 	 */
@@ -211,7 +214,7 @@ public class Section3Test extends BaseExamples {
 				.where(GraphPatterns.and(book.has(dc.iri("date"), date), book.has(p, v))
 						.filter(Expressions.gt(date,
 								Rdf.literalOfType("1970-01-01T00:00:00-02:00", xsd.iri("dateTime")))));
-		Assert.assertThat(modify.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(modify.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX dc: <http://purl.org/dc/elements/1.1/> "
 						+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
 						+ "DELETE { ?book ?p ?v . } "
@@ -225,7 +228,7 @@ public class Section3Test extends BaseExamples {
 
 	/**
 	 * PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-	 *
+	 * <p>
 	 * WITH <http://example/addresses> DELETE { ?person ?property ?value } WHERE { ?person ?property ?value ;
 	 * foaf:givenName 'Fred' }
 	 */
@@ -240,7 +243,7 @@ public class Section3Test extends BaseExamples {
 				.delete(person.has(property, value))
 				.where(person.has(property, value).andHas(foaf.iri("givenName"), "Fred"));
 
-		Assert.assertThat(modify.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(modify.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "WITH <http://example/addresses> "
 						+ "DELETE { ?person ?property ?value .} "
@@ -253,7 +256,7 @@ public class Section3Test extends BaseExamples {
 
 	/**
 	 * PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-	 *
+	 * <p>
 	 * INSERT { GRAPH <http://example/bookStore2> { ?book ?p ?v } } WHERE { GRAPH <http://example/bookStore> { ?book
 	 * dc:date ?date . FILTER ( ?date > "1970-01-01T00:00:00-02:00"^^xsd:dateTime ) ?book ?p ?v } }
 	 */
@@ -269,7 +272,7 @@ public class Section3Test extends BaseExamples {
 				.where(and(book.has(dc.iri("date"), date), book.has(p, v)).from(iri("http://example/bookStore"))
 						.filter(Expressions.gt(date,
 								Rdf.literalOfType("1970-01-01T00:00:00-02:00", xsd.iri("dateTime")))));
-		Assert.assertThat(modify.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(modify.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX dc: <http://purl.org/dc/elements/1.1/> "
 						+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
 						+ "INSERT { "
@@ -285,7 +288,7 @@ public class Section3Test extends BaseExamples {
 
 	/**
 	 * PREFIX foaf: <http://xmlns.com/foaf/0.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-	 *
+	 * <p>
 	 * INSERT { GRAPH <http://example/addresses> { ?person foaf:name ?name . ?person foaf:mbox ?email } } WHERE { GRAPH
 	 * <http://example/people> { ?person foaf:name ?name . OPTIONAL { ?person foaf:mbox ?email } } }
 	 */
@@ -303,7 +306,7 @@ public class Section3Test extends BaseExamples {
 				.where(and(personNameTriple, GraphPatterns.optional(personEmailTriple))
 						.from(iri("http://example/people")));
 
-		Assert.assertThat(insertAddressesQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(insertAddressesQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/> "
 						+ "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
 						+ "INSERT { "
@@ -324,10 +327,10 @@ public class Section3Test extends BaseExamples {
 	/**
 	 * PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX dcmitype: <http://purl.org/dc/dcmitype/> PREFIX xsd:
 	 * <http://www.w3.org/2001/XMLSchema#>
-	 *
+	 * <p>
 	 * INSERT { GRAPH <http://example/bookStore2> { ?book ?p ?v } } WHERE { GRAPH <http://example/bookStore> { ?book
 	 * dc:date ?date . FILTER ( ?date < "2000-01-01T00:00:00-02:00"^^xsd:dateTime ) ?book ?p ?v } } ;
-	 *
+	 * <p>
 	 * WITH <http://example/bookStore> DELETE { ?book ?p ?v } WHERE { ?book dc:date ?date ; dc:type
 	 * dcmitype:PhysicalObject . FILTER ( ?date < "2000-01-01T00:00:00-02:00"^^xsd:dateTime ) ?book ?p ?v }
 	 */
@@ -344,7 +347,7 @@ public class Section3Test extends BaseExamples {
 				.where(and(book.has(dc.iri("date"), date), book.has(p, v)).from(iri("http://example/bookStore"))
 						.filter(Expressions.lt(date,
 								Rdf.literalOfType("1970-01-01T00:00:00-02:00", xsd.iri("dateTime")))));
-		Assert.assertThat(insertIntobookStore2Query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(insertIntobookStore2Query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX dc: <http://purl.org/dc/elements/1.1/> "
 						+ "PREFIX dcmitype: <http://purl.org/dc/dcmitype/> "
 						+ "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n"
@@ -366,10 +369,10 @@ public class Section3Test extends BaseExamples {
 				.delete(book.has(p, v))
 				.where(and(book.has(dc.iri("date"), date).andHas(dc.iri("type"), dcmitype.iri("PhysicalObject")),
 						book.has(p, v))
-								.filter(Expressions.lt(date,
-										Rdf.literalOfType("2000-01-01T00:00:00-02:00", xsd.iri("dateTime")))));
+						.filter(Expressions.lt(date,
+								Rdf.literalOfType("2000-01-01T00:00:00-02:00", xsd.iri("dateTime")))));
 
-		Assert.assertThat(deleteFromBookStoreQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(deleteFromBookStoreQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"WITH <http://example/bookStore>\n"
 						+ "DELETE { ?book ?p ?v . }\n"
 						+ "WHERE { ?book dc:date ?date ;\n"
@@ -381,7 +384,7 @@ public class Section3Test extends BaseExamples {
 
 	/**
 	 * PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-	 *
+	 * <p>
 	 * DELETE WHERE { ?person foaf:givenName 'Fred'; ?property ?value }
 	 */
 	@Test
@@ -393,7 +396,7 @@ public class Section3Test extends BaseExamples {
 				.prefix(foaf)
 				.delete()
 				.where(person.has(foaf.iri("givenName"), "Fred").andHas(property, value));
-		Assert.assertThat(modify.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(modify.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "DELETE WHERE {"
 						+ " ?person foaf:givenName \"Fred\";"
@@ -404,7 +407,7 @@ public class Section3Test extends BaseExamples {
 
 	/**
 	 * PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-	 *
+	 * <p>
 	 * DELETE WHERE { GRAPH <http://example.com/names> { ?person foaf:givenName 'Fred' ; ?property1 ?value1 } GRAPH
 	 * <http://example.com/addresses> { ?person ?property2 ?value2 } }
 	 */
@@ -421,7 +424,7 @@ public class Section3Test extends BaseExamples {
 				.where(and(person.has(foaf.iri("givenName"), "Fred").andHas(property1, value1)).from(namesGraph),
 						and(person.has(property2, value2)).from(addressesGraph));
 
-		Assert.assertThat(deleteFredFromNamesAndAddressesQuery.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(deleteFredFromNamesAndAddressesQuery.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "DELETE WHERE { "
 						+ "GRAPH <http://example.com/names> { "
@@ -438,11 +441,11 @@ public class Section3Test extends BaseExamples {
 	@Test
 	public void example_load() {
 		LoadQuery load = Queries.LOAD().from(iri(EXAMPLE_ORG_NS));
-		Assert.assertThat(load.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(load.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"LOAD <https://example.org/ns#>"
 		));
 		load = Queries.LOAD().silent().from(iri(EXAMPLE_ORG_NS)).to(iri(EXAMPLE_COM_NS));
-		Assert.assertThat(load.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(load.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"LOAD SILENT <https://example.org/ns#> INTO GRAPH <https://example.com/ns#>"
 		));
 	}
@@ -450,11 +453,11 @@ public class Section3Test extends BaseExamples {
 	@Test
 	public void example_clear() {
 		ClearQuery clear = Queries.CLEAR().def();
-		Assert.assertThat(clear.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(clear.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"CLEAR DEFAULT"
 		));
 		clear = Queries.CLEAR().silent().graph(iri(EXAMPLE_ORG_NS));
-		Assert.assertThat(clear.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(clear.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"CLEAR SILENT GRAPH <https://example.org/ns#>"
 		));
 	}
@@ -462,11 +465,11 @@ public class Section3Test extends BaseExamples {
 	@Test
 	public void example_create() {
 		CreateQuery create = Queries.CREATE().graph(iri(EXAMPLE_ORG_NS));
-		Assert.assertThat(create.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(create.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"CREATE GRAPH <https://example.org/ns#>"
 		));
 		create = Queries.CREATE().silent().graph(iri(EXAMPLE_ORG_NS));
-		Assert.assertThat(create.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(create.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"CREATE SILENT GRAPH <https://example.org/ns#>"
 		));
 	}
@@ -474,38 +477,44 @@ public class Section3Test extends BaseExamples {
 	@Test
 	public void example_drop() {
 		DropQuery drop = Queries.DROP().def();
-		Assert.assertThat(drop.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(drop.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"DROP DEFAULT"
 		));
 		drop = Queries.DROP().silent().graph(iri(EXAMPLE_ORG_NS));
-		Assert.assertThat(drop.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(drop.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"DROP SILENT GRAPH <https://example.org/ns#>"
 		));
 	}
 
-	/** COPY DEFAULT TO \<http://example.org/named> */
+	/**
+	 * COPY DEFAULT TO \<http://example.org/named>
+	 */
 	@Test
 	public void example_13() {
 		CopyQuery copy = Queries.COPY().fromDefault().to(iri("http://example.org/named"));
-		Assert.assertThat(copy.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(copy.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"COPY DEFAULT TO <http://example.org/named>"
 		));
 	}
 
-	/** MOVE DEFAULT TO <http://example.org/named> */
+	/**
+	 * MOVE DEFAULT TO <http://example.org/named>
+	 */
 	@Test
 	public void example_14() {
 		MoveQuery move = Queries.MOVE().fromDefault().to(iri("http://example.org/named"));
-		Assert.assertThat(move.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(move.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"MOVE DEFAULT TO <http://example.org/named>"
 		));
 	}
 
-	/** ADD DEFAULT TO <http://example.org/named> */
+	/**
+	 * ADD DEFAULT TO <http://example.org/named>
+	 */
 	@Test
 	public void example_15() {
 		AddQuery add = Queries.ADD().fromDefault().to(iri("http://example.org/named"));
-		Assert.assertThat(add.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(add.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"ADD DEFAULT TO <http://example.org/named>"
 		));
 	}

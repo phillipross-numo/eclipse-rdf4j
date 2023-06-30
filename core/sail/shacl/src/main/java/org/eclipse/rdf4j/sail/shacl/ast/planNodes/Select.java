@@ -1,9 +1,12 @@
 /*******************************************************************************
- * .Copyright (c) 2020 Eclipse RDF4J contributors.
+ * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.planNodes;
@@ -18,14 +21,13 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
-import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.impl.EmptyBindingSet;
-import org.eclipse.rdf4j.query.parser.ParsedQuery;
-import org.eclipse.rdf4j.query.parser.QueryParserFactory;
-import org.eclipse.rdf4j.query.parser.QueryParserRegistry;
 import org.eclipse.rdf4j.sail.SailConnection;
 import org.eclipse.rdf4j.sail.SailException;
 import org.eclipse.rdf4j.sail.memory.MemoryStoreConnection;
+import org.eclipse.rdf4j.sail.shacl.ast.SparqlFragment;
+import org.eclipse.rdf4j.sail.shacl.ast.SparqlQueryParserCache;
 import org.eclipse.rdf4j.sail.shacl.ast.StatementMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,85 +49,97 @@ public class Select implements PlanNode {
 	private boolean printed = false;
 	private ValidationExecutionLogger validationExecutionLogger;
 
-	public Select(SailConnection connection, String queryFregment, String orderBy,
+	public Select(SailConnection connection, SparqlFragment queryFragment, String orderBy,
 			Function<BindingSet, ValidationTuple> mapper, Resource[] dataGraph) {
 		this.connection = connection;
+		assert this.connection != null;
 		this.mapper = mapper;
-		if (queryFregment.trim().equals("")) {
+		String fragment = queryFragment.getFragment();
+		if (fragment.trim().equals("")) {
 			logger.error("Query is empty", new Throwable("This throwable is just to log the stack trace"));
 
 			// empty set
-			queryFregment = "" +
-					"?a <http://fjiewojfiwejfioewhgurh8924y.com/f289h8fhn> ?c. \n" +
-					"FILTER (NOT EXISTS {?a <http://fjiewojfiwejfioewhgurh8924y.com/f289h8fhn> ?c}) \n";
+			fragment = "" +
+					"?a <http://fjiewojfiwejfioewhgurh8924y.com/f289h8fhn> ?c.\n" +
+					"FILTER (NOT EXISTS {?a <http://fjiewojfiwejfioewhgurh8924y.com/f289h8fhn> ?c})";
 		}
 		sorted = orderBy != null;
 
-		if (!sorted && queryFregment.trim().startsWith("select ")) {
-			this.query = queryFregment;
+		if (!sorted && fragment.trim().startsWith("select ")) {
+			this.query = queryFragment.getNamespacesForSparql() + "\n"
+					+ StatementMatcher.StableRandomVariableProvider.normalize(fragment);
 		} else {
-			this.query = "select * where {\n" + queryFregment + "\n} " + (sorted ? "order by " + orderBy : "");
+			this.query = queryFragment.getNamespacesForSparql() + "\n" + StatementMatcher.StableRandomVariableProvider
+					.normalize("select * where {\n" + fragment + "\n}" + (sorted ? " order by " + orderBy : ""));
 		}
 
 		dataset = PlanNodeHelper.asDefaultGraphDataset(dataGraph);
-
+		if (logger.isDebugEnabled()) {
+			this.stackTrace = Thread.currentThread().getStackTrace();
+		}
 	}
 
 	public Select(SailConnection connection, String query, Function<BindingSet, ValidationTuple> mapper,
 			Resource[] dataGraph) {
 		assert !query.toLowerCase().contains("order by") : "Queries with order by are not supported.";
-		assert query.trim().toLowerCase().startsWith("select") : "Expected query to start with select.";
+		assert query.trim().toLowerCase().contains("select ") : "Expected query to contain select.";
 
 		this.connection = connection;
+		assert this.connection != null;
 		this.mapper = mapper;
 		this.query = StatementMatcher.StableRandomVariableProvider.normalize(query);
 		this.dataset = PlanNodeHelper.asDefaultGraphDataset(dataGraph);
 
 		this.sorted = false;
+		if (logger.isDebugEnabled()) {
+			this.stackTrace = Thread.currentThread().getStackTrace();
+		}
 	}
 
 	@Override
 	public CloseableIteration<? extends ValidationTuple, SailException> iterator() {
 		return new LoggingCloseableIteration(this, validationExecutionLogger) {
 
-			CloseableIteration<? extends BindingSet, QueryEvaluationException> bindingSet = null;
+			CloseableIteration<? extends BindingSet, QueryEvaluationException> bindingSet;
 
-			private void init() {
-
+			protected void init() {
 				if (bindingSet != null) {
 					return;
 				}
 
-				QueryParserFactory queryParserFactory = QueryParserRegistry.getInstance()
-						.get(QueryLanguage.SPARQL)
-						.get();
-
 				try {
-					ParsedQuery parsedQuery = queryParserFactory.getParser().parseQuery(query, null);
-					bindingSet = connection.evaluate(parsedQuery.getTupleExpr(), dataset,
-							EmptyBindingSet.getInstance(), true);
+					TupleExpr tupleExpr = SparqlQueryParserCache.get(query);
+
+					bindingSet = connection.evaluate(tupleExpr, dataset, EmptyBindingSet.getInstance(), true);
+					if (logger.isTraceEnabled()) {
+						boolean hasNext = bindingSet.hasNext();
+						logger.trace("SPARQL query (hasNext={}) \n{}", hasNext, Formatter.formatSparqlQuery(query));
+					}
 				} catch (MalformedQueryException e) {
-					logger.error("Malformed query: \n{}", query);
+					if (stackTrace != null) {
+						Exception rootCause = new Exception("Root cause");
+						rootCause.setStackTrace(stackTrace);
+						logger.debug("Select plan node with malformed query", rootCause);
+					}
+					logger.error("Malformed query:\n{}", query);
 					throw e;
 				}
 			}
 
 			@Override
-			public void localClose() throws SailException {
+			public void localClose() {
 				if (bindingSet != null) {
 					bindingSet.close();
 				}
 			}
 
 			@Override
-			protected boolean localHasNext() throws SailException {
-				init();
+			protected boolean localHasNext() {
 				return bindingSet.hasNext();
 			}
 
 			@Override
-			protected ValidationTuple loggingNext() throws SailException {
-				init();
+			protected ValidationTuple loggingNext() {
 				return mapper.apply(bindingSet.next());
 			}
 
@@ -191,23 +205,23 @@ public class Select implements PlanNode {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		Select select = (Select) o;
+		Select that = (Select) o;
 		// added/removed connections are always newly minted per plan node, so we instead need to compare the underlying
 		// sail
-		if (connection instanceof MemoryStoreConnection && select.connection instanceof MemoryStoreConnection) {
-			return sorted == select.sorted &&
+		if (connection instanceof MemoryStoreConnection && that.connection instanceof MemoryStoreConnection) {
+			return sorted == that.sorted &&
 					((MemoryStoreConnection) connection).getSail()
-							.equals(((MemoryStoreConnection) select.connection).getSail())
+							.equals(((MemoryStoreConnection) that.connection).getSail())
 					&&
-					mapper.equals(select.mapper) &&
-					dataset.equals(select.dataset) &&
-					query.equals(select.query);
+					mapper.equals(that.mapper) &&
+					dataset.equals(that.dataset) &&
+					query.equals(that.query);
 		} else {
-			return sorted == select.sorted &&
-					connection.equals(select.connection) &&
-					mapper.equals(select.mapper) &&
-					dataset.equals(select.dataset) &&
-					query.equals(select.query);
+			return sorted == that.sorted &&
+					Objects.equals(connection, that.connection) &&
+					mapper.equals(that.mapper) &&
+					dataset.equals(that.dataset) &&
+					query.equals(that.query);
 		}
 	}
 

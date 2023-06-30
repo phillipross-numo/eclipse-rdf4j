@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.planNodes;
@@ -33,20 +36,27 @@ public class ValidationReportNode implements PlanNode {
 
 		return new LoggingCloseableIteration(this, validationExecutionLogger) {
 
-			private final CloseableIteration<? extends ValidationTuple, SailException> iterator = parent.iterator();
+			private CloseableIteration<? extends ValidationTuple, SailException> iterator;
 
 			@Override
-			public void localClose() throws SailException {
-				iterator.close();
+			protected void init() {
+				iterator = parent.iterator();
 			}
 
 			@Override
-			public boolean localHasNext() throws SailException {
+			public void localClose() {
+				if (iterator != null) {
+					iterator.close();
+				}
+			}
+
+			@Override
+			public boolean localHasNext() {
 				return iterator.hasNext();
 			}
 
 			@Override
-			public ValidationTuple loggingNext() throws SailException {
+			public ValidationTuple loggingNext() {
 				ValidationTuple next = iterator.next();
 				return next.addValidationResult(validationResultFunction);
 			}

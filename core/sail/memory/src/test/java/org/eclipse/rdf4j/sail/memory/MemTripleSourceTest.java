@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.memory;
 
@@ -815,18 +818,16 @@ public class MemTripleSourceTest {
 	protected void loadTestData(String dataFile, Resource... contexts)
 			throws RDFParseException, IOException, SailException {
 		logger.debug("loading dataset {}", dataFile);
-		InputStream dataset = this.getClass().getResourceAsStream(dataFile);
-		SailConnection con = store.getConnection();
-		try {
-			con.begin();
-			for (Statement nextStatement : Rio.parse(dataset, "", RDFFormat.TURTLE, contexts)) {
-				con.addStatement(nextStatement.getSubject(), nextStatement.getPredicate(), nextStatement.getObject(),
-						nextStatement.getContext());
+		try (InputStream dataset = this.getClass().getResourceAsStream(dataFile)) {
+			try (SailConnection con = store.getConnection()) {
+				con.begin();
+				for (Statement nextStatement : Rio.parse(dataset, "", RDFFormat.TURTLE, contexts)) {
+					con.addStatement(nextStatement.getSubject(), nextStatement.getPredicate(),
+							nextStatement.getObject(),
+							nextStatement.getContext());
+				}
+				con.commit();
 			}
-		} finally {
-			con.commit();
-			con.close();
-			dataset.close();
 		}
 		logger.debug("dataset loaded.");
 	}

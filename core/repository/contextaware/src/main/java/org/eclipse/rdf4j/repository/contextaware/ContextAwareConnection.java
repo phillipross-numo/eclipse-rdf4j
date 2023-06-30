@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.repository.contextaware;
 
@@ -14,9 +17,9 @@ import java.io.Reader;
 import java.net.URL;
 
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteratorIteration;
 import org.eclipse.rdf4j.common.iteration.ConvertingIteration;
 import org.eclipse.rdf4j.common.iteration.Iteration;
-import org.eclipse.rdf4j.common.iteration.IteratorIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
@@ -313,7 +316,7 @@ public class ContextAwareConnection extends RepositoryConnectionWrapper {
 	@Override
 	public void add(Iterable<? extends Statement> statements, Resource... contexts) throws RepositoryException {
 		if (isNilContext(contexts)) {
-			add(new IteratorIteration<Statement, RuntimeException>(statements.iterator()));
+			add(new CloseableIteratorIteration<>(statements.iterator()));
 		} else {
 			super.add(statements, contexts);
 		}
@@ -635,7 +638,7 @@ public class ContextAwareConnection extends RepositoryConnectionWrapper {
 	@Override
 	public void remove(Iterable<? extends Statement> statements, Resource... contexts) throws RepositoryException {
 		if (isAllContext(contexts)) {
-			remove(new IteratorIteration<Statement, RuntimeException>(statements.iterator()));
+			remove(new CloseableIteratorIteration<>(statements.iterator()));
 		} else {
 			super.remove(statements, contexts);
 		}

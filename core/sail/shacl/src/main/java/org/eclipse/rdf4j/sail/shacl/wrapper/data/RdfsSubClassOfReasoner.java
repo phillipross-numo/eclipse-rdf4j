@@ -1,10 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2022 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
- ******************************************************************************/
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.wrapper.data;
 
@@ -27,7 +30,8 @@ import org.eclipse.rdf4j.model.util.Statements;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDF4J;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.sail.shacl.ShaclSailConnection;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.shacl.ValidationSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,27 +150,48 @@ public class RdfsSubClassOfReasoner {
 		return iris != null ? iris : Collections.emptySet();
 	}
 
-	public static RdfsSubClassOfReasoner createReasoner(ShaclSailConnection shaclSailConnection) {
+	public static RdfsSubClassOfReasoner createReasoner(SailConnection sailConnection,
+			ValidationSettings validationSettings) {
+		return createReasoner(sailConnection, null, validationSettings);
+	}
+
+	public static RdfsSubClassOfReasoner createReasoner(SailConnection sailConnection, SailConnection secondConnection,
+			ValidationSettings validationSettings) {
 		long before = 0;
-		if (shaclSailConnection.sail.isPerformanceLogging()) {
+		if (validationSettings.isPerformanceLogging()) {
 			before = System.currentTimeMillis();
 		}
 
 		RdfsSubClassOfReasoner rdfsSubClassOfReasoner = new RdfsSubClassOfReasoner();
 
-		try (Stream<? extends Statement> stream = shaclSailConnection.getStatements(null, RDFS.SUBCLASSOF, null, false)
+		try (Stream<? extends Statement> stream = sailConnection.getStatements(null, RDFS.SUBCLASSOF, null, false)
 				.stream()) {
 			stream.forEach(rdfsSubClassOfReasoner::addSubClassOfStatement);
 		}
 
-		try (Stream<? extends Statement> stream = shaclSailConnection
+		if (secondConnection != null) {
+			try (Stream<? extends Statement> stream = secondConnection.getStatements(null, RDFS.SUBCLASSOF, null, false)
+					.stream()) {
+				stream.forEach(rdfsSubClassOfReasoner::addSubClassOfStatement);
+			}
+		}
+
+		try (Stream<? extends Statement> stream = sailConnection
 				.getStatements(null, RDFS.SUBCLASSOF, null, false, RDF4J.SHACL_SHAPE_GRAPH)
 				.stream()) {
 			stream.forEach(rdfsSubClassOfReasoner::addSubClassOfStatement);
 		}
 
+		if (secondConnection != null) {
+			try (Stream<? extends Statement> stream = secondConnection
+					.getStatements(null, RDFS.SUBCLASSOF, null, false, RDF4J.SHACL_SHAPE_GRAPH)
+					.stream()) {
+				stream.forEach(rdfsSubClassOfReasoner::addSubClassOfStatement);
+			}
+		}
+
 		rdfsSubClassOfReasoner.calculateSubClassOf(rdfsSubClassOfReasoner.subClassOfStatements);
-		if (shaclSailConnection.sail.isPerformanceLogging()) {
+		if (validationSettings.isPerformanceLogging()) {
 			logger.info("RdfsSubClassOfReasoner.createReasoner() took {} ms", System.currentTimeMillis() - before);
 		}
 		return rdfsSubClassOfReasoner;

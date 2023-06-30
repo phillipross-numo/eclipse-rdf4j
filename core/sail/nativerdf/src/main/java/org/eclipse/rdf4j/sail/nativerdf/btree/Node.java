@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.nativerdf.btree;
 
@@ -19,24 +22,36 @@ import org.eclipse.rdf4j.common.io.ByteArrayUtil;
 
 class Node {
 
-	/** This node's ID. */
+	/**
+	 * This node's ID.
+	 */
 	private final int id;
 
 	private final BTree tree;
 
-	/** This node's data. */
+	/**
+	 * This node's data.
+	 */
 	private final byte[] data;
 
-	/** The number of values containined in this node. */
+	/**
+	 * The number of values containined in this node.
+	 */
 	private int valueCount;
 
-	/** The number of objects currently 'using' this node. */
+	/**
+	 * The number of objects currently 'using' this node.
+	 */
 	private final AtomicInteger usageCount = new AtomicInteger(0);
 
-	/** Flag indicating whether the contents of data has changed. */
+	/**
+	 * Flag indicating whether the contents of data has changed.
+	 */
 	private boolean dataChanged;
 
-	/** Registered listeners that want to be notified of changes to the node. */
+	/**
+	 * Registered listeners that want to be notified of changes to the node.
+	 */
 	private final ConcurrentLinkedDeque<NodeListener> listeners = new ConcurrentLinkedDeque<>();
 
 	/**

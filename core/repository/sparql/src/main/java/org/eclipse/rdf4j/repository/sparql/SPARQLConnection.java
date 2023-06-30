@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.repository.sparql;
 
@@ -135,7 +138,7 @@ public class SPARQLConnection extends AbstractRepositoryConnection implements Ht
 	 * will always be success.
 	 * <p>
 	 * Stores that do not record empty graphs will always return success. </blockquote>
-	 *
+	 * <p>
 	 * Note that in most SPARQL endpoint implementations not recording empty graphs is the default behavior, and setting
 	 * this flag to <code>true</code> will have no effect. Setting this flag will have no effect on any other errors or
 	 * other API or SPARQL operations: <strong>only</strong> the behavior of the {@link #clear(Resource...)} API
@@ -162,17 +165,17 @@ public class SPARQLConnection extends AbstractRepositoryConnection implements Ht
 	 * will always be success.
 	 * <p>
 	 * Stores that do not record empty graphs will always return success. </blockquote>
-	 *
+	 * <p>
 	 * Note that in most SPARQL endpoint implementations not recording empty graphs is the default behavior, and setting
 	 * this flag to <code>true</code> will have no effect. Setting this flag will have no effect on any other errors or
 	 * other API or SPARQL operations: <strong>only</strong> the behavior of the {@link #clear(Resource...)} API
 	 * operation is modified to respond with a success message when removing a non-existent named graph.
 	 *
-	 * @param silent the value to set this to.
+	 * @param flag the value to set this to.
 	 * @see https://www.w3.org/TR/sparql11-update/#clear
-	 * @deprecated since 3.6.0 - use {@link #setSilentClear(boolean)} instead.
+	 * @deprecated Use {@link #setSilentClear(boolean)} instead.
 	 */
-	@Deprecated
+	@Deprecated(since = "3.6.0")
 	public void enableSilentMode(boolean flag) {
 		setSilentClear(flag);
 	}
@@ -1072,6 +1075,7 @@ public class SPARQLConnection extends AbstractRepositoryConnection implements Ht
 	 * @param obj  the object {@link Value} used as input or <code>null</code> if wildcard was used
 	 * @return the converted iteration
 	 */
+	@Deprecated(since = "4.1.0", forRemoval = true)
 	protected Iteration<Statement, QueryEvaluationException> toStatementIteration(TupleQueryResult iter,
 			final Resource subj, final IRI pred, final Value obj) {
 

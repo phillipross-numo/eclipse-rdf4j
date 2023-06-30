@@ -1,12 +1,16 @@
 /*******************************************************************************
  * Copyright (c) 2016 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.impl;
 
+import org.eclipse.rdf4j.common.transaction.QueryEvaluationMode;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.BooleanLiteral;
@@ -27,19 +31,22 @@ import org.eclipse.rdf4j.query.algebra.evaluation.util.XMLDatatypeMathUtil;
  * comparison and mathematical operators to the minimally-conforming {@link StrictEvaluationStrategy}.
  *
  * @author Jeen Broekstra
+ * @deprecated Use {@link DefaultEvaluationStrategy} instead.
  */
+@Deprecated(since = "4.3.0", forRemoval = true)
 public class ExtendedEvaluationStrategy extends TupleFunctionEvaluationStrategy {
 
 	public ExtendedEvaluationStrategy(TripleSource tripleSource, Dataset dataset,
 			FederatedServiceResolver serviceResolver, long iterationCacheSyncThreshold,
 			EvaluationStatistics evaluationStatistics) {
 		super(tripleSource, dataset, serviceResolver, iterationCacheSyncThreshold, evaluationStatistics);
+		this.setQueryEvaluationMode(QueryEvaluationMode.STANDARD);
 	}
 
 	@Deprecated(forRemoval = true)
 	@Override
 	public Value evaluate(Compare node, BindingSet bindings)
-			throws ValueExprEvaluationException, QueryEvaluationException {
+			throws QueryEvaluationException {
 		Value leftVal = evaluate(node.getLeftArg(), bindings);
 		Value rightVal = evaluate(node.getRightArg(), bindings);
 
@@ -56,7 +63,7 @@ public class ExtendedEvaluationStrategy extends TupleFunctionEvaluationStrategy 
 	@Deprecated(forRemoval = true)
 	@Override
 	public Value evaluate(MathExpr node, BindingSet bindings)
-			throws ValueExprEvaluationException, QueryEvaluationException {
+			throws QueryEvaluationException {
 		Value leftVal = evaluate(node.getLeftArg(), bindings);
 		Value rightVal = evaluate(node.getRightArg(), bindings);
 
@@ -64,7 +71,7 @@ public class ExtendedEvaluationStrategy extends TupleFunctionEvaluationStrategy 
 	}
 
 	private Value mathOperationApplier(MathExpr node, Value leftVal, Value rightVal) {
-		if (leftVal instanceof Literal && rightVal instanceof Literal) {
+		if (leftVal.isLiteral() && rightVal.isLiteral()) {
 			return XMLDatatypeMathUtil.compute((Literal) leftVal, (Literal) rightVal, node.getOperator());
 		}
 

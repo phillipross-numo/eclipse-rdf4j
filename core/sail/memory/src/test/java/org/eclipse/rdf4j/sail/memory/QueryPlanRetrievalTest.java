@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.memory;
@@ -453,8 +456,7 @@ public class QueryPlanRetrievalTest {
 					"   ├──Join (JoinIterator) (resultSizeActual=1)\n" +
 					"   │  ╠══StatementPattern (costEstimate=1, resultSizeEstimate=4, resultSizeActual=3)\n" +
 					"   │  ║     Var (name=a)\n" +
-					"   │  ║     Var (name=_const_f5e5585a_uri, value=http://www.w3.org/1999/02/22-rdf-syntax-ns#type, anonymous)"
-					+ "\n"
+					"   │  ║     Var (name=_const_f5e5585a_uri, value=http://www.w3.org/1999/02/22-rdf-syntax-ns#type, anonymous)\n"
 					+
 					"   │  ║     Var (name=d)\n" +
 					"   │  ╚══Filter (resultSizeActual=1)\n" +
@@ -466,15 +468,12 @@ public class QueryPlanRetrievalTest {
 					"   │        ║  ├──Compare (!=)\n" +
 					"   │        ║  │     Var (name=c)\n" +
 					"   │        ║  │     ValueConstant (value=\"<\")\n" +
-					"   │        ║  └──StatementPattern (costEstimate=2, resultSizeEstimate=4, resultSizeActual=4)"
-					+ "\n" +
+					"   │        ║  └──StatementPattern (costEstimate=2, resultSizeEstimate=4, resultSizeActual=4)\n" +
 					"   │        ║        Var (name=a)\n" +
-					"   │        ║        Var (name=_const_f5e5585a_uri, value=http://www.w3.org/1999/02/22-rdf-syntax-ns#type, anonymous)"
-					+ "\n"
+					"   │        ║        Var (name=_const_f5e5585a_uri, value=http://www.w3.org/1999/02/22-rdf-syntax-ns#type, anonymous)\n"
 					+
 					"   │        ║        Var (name=c)\n" +
-					"   │        ╚══LeftJoin (new scope) (BadlyDesignedLeftJoinIterator) (costEstimate=5, resultSizeEstimate=12, resultSizeActual=3)"
-					+ "\n"
+					"   │        ╚══LeftJoin (new scope) (BadlyDesignedLeftJoinIterator) (costEstimate=5, resultSizeEstimate=12, resultSizeActual=3)\n"
 					+
 					"   │           ├──SingletonSet (resultSizeActual=3)\n" +
 					"   │           └──StatementPattern (resultSizeEstimate=12, resultSizeActual=36)\n" +

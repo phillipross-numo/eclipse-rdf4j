@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2019 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl;
@@ -47,7 +50,7 @@ public class RdfsShaclConnectionTest {
 
 		try (NotifyingSailConnection connection = shaclSail.getConnection()) {
 			((ShaclSailConnection) connection).rdfsSubClassOfReasoner = RdfsSubClassOfReasoner
-					.createReasoner((ShaclSailConnection) connection);
+					.createReasoner((ShaclSailConnection) connection, new ValidationSettings());
 			VerySimpleRdfsBackwardsChainingConnection connection2 = new VerySimpleRdfsBackwardsChainingConnection(
 					connection,
 					((ShaclSailConnection) connection).getRdfsSubClassOfReasoner());
@@ -68,7 +71,7 @@ public class RdfsShaclConnectionTest {
 
 		try (NotifyingSailConnection connection = shaclSail.getConnection()) {
 			((ShaclSailConnection) connection).rdfsSubClassOfReasoner = RdfsSubClassOfReasoner
-					.createReasoner((ShaclSailConnection) connection);
+					.createReasoner((ShaclSailConnection) connection, new ValidationSettings());
 
 			VerySimpleRdfsBackwardsChainingConnection connection2 = new VerySimpleRdfsBackwardsChainingConnection(
 					connection,
@@ -118,7 +121,7 @@ public class RdfsShaclConnectionTest {
 			connection.commit();
 
 			((ShaclSailConnection) connection).rdfsSubClassOfReasoner = RdfsSubClassOfReasoner
-					.createReasoner((ShaclSailConnection) connection);
+					.createReasoner((ShaclSailConnection) connection, new ValidationSettings());
 
 			VerySimpleRdfsBackwardsChainingConnection connection2 = new VerySimpleRdfsBackwardsChainingConnection(
 					connection,

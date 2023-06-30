@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.model.impl;
 
@@ -47,7 +50,6 @@ public class SimpleTriple extends AbstractTriple {
 	 * @param subject   The triple's subject, must not be <var>null</var>.
 	 * @param predicate The triple's predicate, must not be <var>null</var>.
 	 * @param object    The triple's object, must not be <var>null</var>.
-	 *
 	 * @see SimpleValueFactory#createTriple(Resource, IRI, Value)
 	 */
 	protected SimpleTriple(Resource subject, IRI predicate, Value object) {

@@ -1,9 +1,12 @@
 /*******************************************************************************
- * .Copyright (c) 2020 Eclipse RDF4J contributors.
+ * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.planNodes;
@@ -46,6 +49,7 @@ public class UnorderedSelect implements PlanNode {
 	public UnorderedSelect(SailConnection connection, Resource subject, IRI predicate, Value object,
 			Resource[] dataGraph, Function<Statement, ValidationTuple> mapper) {
 		this.connection = connection;
+		assert this.connection != null;
 		this.subject = subject;
 		this.predicate = predicate;
 		this.object = object;
@@ -57,22 +61,28 @@ public class UnorderedSelect implements PlanNode {
 	public CloseableIteration<? extends ValidationTuple, SailException> iterator() {
 		return new LoggingCloseableIteration(this, validationExecutionLogger) {
 
-			final CloseableIteration<? extends Statement, SailException> statements = connection.getStatements(subject,
-					predicate, object, true, dataGraph);
+			CloseableIteration<? extends Statement, SailException> statements;
 
 			@Override
-			public void localClose() throws SailException {
-				statements.close();
+			protected void init() {
+				assert statements == null;
+				statements = connection.getStatements(subject, predicate, object, true, dataGraph);
 			}
 
 			@Override
-			protected boolean localHasNext() throws SailException {
+			public void localClose() {
+				if (statements != null) {
+					statements.close();
+				}
+			}
+
+			@Override
+			protected boolean localHasNext() {
 				return statements.hasNext();
 			}
 
 			@Override
-			protected ValidationTuple loggingNext() throws SailException {
-
+			protected ValidationTuple loggingNext() {
 				return mapper.apply(statements.next());
 			}
 
@@ -155,7 +165,7 @@ public class UnorderedSelect implements PlanNode {
 					Arrays.equals(dataGraph, that.dataGraph) &&
 					mapper.equals(that.mapper);
 		} else {
-			return connection.equals(that.connection) &&
+			return Objects.equals(connection, that.connection) &&
 					Objects.equals(subject, that.subject) &&
 					Objects.equals(predicate, that.predicate) &&
 					Objects.equals(object, that.object) &&

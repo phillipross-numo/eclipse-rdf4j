@@ -1,15 +1,19 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.iterator;
 
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
+import org.eclipse.rdf4j.common.exception.RDF4JException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.common.iteration.FilterIteration;
 import org.eclipse.rdf4j.model.Literal;
@@ -27,6 +31,7 @@ import org.eclipse.rdf4j.query.algebra.evaluation.QueryValueEvaluationStep;
 import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.QueryEvaluationContext;
 
+@Deprecated(since = "4.1.0")
 public class FilterIterator extends FilterIteration<BindingSet, QueryEvaluationException> {
 
 	private final QueryValueEvaluationStep condition;
@@ -54,6 +59,7 @@ public class FilterIterator extends FilterIteration<BindingSet, QueryEvaluationE
 		}
 	}
 
+	@Deprecated(forRemoval = true, since = "4.2.1")
 	public static boolean isPartOfSubQuery(QueryModelNode node) {
 		if (node instanceof SubQueryValueOperator) {
 			return true;
@@ -70,7 +76,6 @@ public class FilterIterator extends FilterIteration<BindingSet, QueryEvaluationE
 	/**
 	 * This is used to make sure that no variable is seen by the filter that are not in scope. Historically important in
 	 * subquery cases.
-	 *
 	 */
 	public static final class RetainedVariableFilteredQueryEvaluationContext implements QueryEvaluationContext {
 		private final Filter node;

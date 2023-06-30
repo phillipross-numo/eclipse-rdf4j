@@ -1,13 +1,14 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.repository.sparql.federation;
-
-import java.lang.ref.WeakReference;
 
 import org.eclipse.rdf4j.common.iteration.AbstractCloseableIteration;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
@@ -51,8 +52,7 @@ public abstract class JoinExecutorBase<T> extends LookAheadIteration<T, QueryEva
 	 */
 	protected volatile boolean finished = false;
 
-	protected final QueueCursor<CloseableIteration<T, QueryEvaluationException>> rightQueue = new QueueCursor<>(1024,
-			new WeakReference<>(this));
+	protected final QueueCursor<CloseableIteration<T, QueryEvaluationException>> rightQueue = new QueueCursor<>(1024);
 
 	protected JoinExecutorBase(CloseableIteration<T, QueryEvaluationException> leftIter, TupleExpr rightArg,
 			BindingSet bindings) throws QueryEvaluationException {
@@ -66,6 +66,9 @@ public abstract class JoinExecutorBase<T> extends LookAheadIteration<T, QueryEva
 		try {
 			handleBindings();
 		} catch (Exception e) {
+			if (e instanceof InterruptedException) {
+				Thread.currentThread().interrupt();
+			}
 			toss(e);
 		} finally {
 			finished = true;
@@ -77,7 +80,7 @@ public abstract class JoinExecutorBase<T> extends LookAheadIteration<T, QueryEva
 	/**
 	 * Implementations must implement this method to handle bindings. Use the following as a template <code>
 	 * while (!closed && leftIter.hasNext()) {
-	 * 		// your code
+	 * // your code
 	 * }
 	 * </code> and add results to rightQueue. Note that addResult() is implemented synchronized and thus thread safe. In
 	 * case you can guarantee sequential access, it is also possible to directly access rightQueue

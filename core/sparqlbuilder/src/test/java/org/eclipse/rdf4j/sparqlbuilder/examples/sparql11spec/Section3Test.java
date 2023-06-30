@@ -1,13 +1,17 @@
 /*******************************************************************************
- Copyright (c) 2018 Eclipse RDF4J contributors.
- All rights reserved. This program and the accompanying materials
- are made available under the terms of the Eclipse Distribution License v1.0
- which accompanies this distribution, and is available at
- http://www.eclipse.org/org/documents/edl-v10.php.
+ * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sparqlbuilder.examples.sparql11spec;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.rdf4j.sparqlbuilder.core.SparqlBuilder.var;
 import static org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf.iri;
 
@@ -22,8 +26,7 @@ import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPattern;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPatterns;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.TriplePattern;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class Section3Test extends BaseExamples {
 	@Test
@@ -37,7 +40,7 @@ public class Section3Test extends BaseExamples {
 		GraphPattern where = xTitle.filter(regex);
 
 		query.prefix(dc).select(title).where(where);
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX  dc:  <http://purl.org/dc/elements/1.1/>\n"
 						+ "SELECT  ?title\n"
 						+ "WHERE   { ?x dc:title ?title .\n"
@@ -46,7 +49,7 @@ public class Section3Test extends BaseExamples {
 		));
 		query = Queries.SELECT();
 		query.prefix(dc).select(title).where(xTitle.filter(Expressions.regex(title, "web", "i")));
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX  dc:  <http://purl.org/dc/elements/1.1/>\n"
 						+ "SELECT  ?title\n"
 						+ "WHERE   { ?x dc:title ?title .\n"
@@ -68,7 +71,7 @@ public class Section3Test extends BaseExamples {
 		query.prefix(dc, ns).select(title, price).where(where);
 		// NOTE: had to move FILTER to the end of the group graph pattern (in the original, it's between the two triple
 		// patterns).
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX  dc:  <http://purl.org/dc/elements/1.1/>\n"
 						+ "PREFIX  ns:  <https://example.com/ns#>\n"
 						+ "SELECT  ?title ?price\n"

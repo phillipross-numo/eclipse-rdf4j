@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.spring.dao;
@@ -12,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.rdf4j.common.annotation.Experimental;
 import org.eclipse.rdf4j.spring.dao.exception.RDF4JDaoException;
 import org.eclipse.rdf4j.spring.dao.support.opbuilder.GraphQueryEvaluationBuilder;
 import org.eclipse.rdf4j.spring.dao.support.opbuilder.TupleQueryEvaluationBuilder;
@@ -20,9 +24,10 @@ import org.eclipse.rdf4j.spring.dao.support.sparql.NamedSparqlSupplier;
 import org.eclipse.rdf4j.spring.support.RDF4JTemplate;
 
 /**
- * @since 4.0.0
  * @author Florian Kleedorfer
+ * @since 4.0.0
  */
+@Experimental
 public abstract class RDF4JDao {
 	private final RDF4JTemplate rdf4JTemplate;
 
@@ -114,7 +119,9 @@ public abstract class RDF4JDao {
 			this.key = key;
 		}
 
-		/** Supplies the specified SPARQL String. */
+		/**
+		 * Supplies the specified SPARQL String.
+		 */
 		public NamedSparqlSupplierPreparer supplySparql(String sparql) {
 			prepareNamedSparqlSupplier(key, sparql);
 			return new NamedSparqlSupplierPreparer();

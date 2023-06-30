@@ -1,11 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2022 Eclipse RDF4J contributors.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Distribution License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/org/documents/edl-v10.php.
- ******************************************************************************/
-
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 package org.eclipse.rdf4j.sail.shacl.wrapper.shape;
 
 import java.util.Arrays;
@@ -25,12 +27,25 @@ public class CombinedShapeSource implements ShapeSource {
 	private final BackwardChainingShapeSource baseSail;
 	private final Resource[] context;
 
+	public CombinedShapeSource(SailConnection shapesForForwardChainingConnection,
+			SailConnection sailConnection) {
+		this(shapesForForwardChainingConnection, sailConnection, null);
+	}
+
 	public CombinedShapeSource(RepositoryConnection shapesForForwardChainingConnection,
 			SailConnection sailConnection) {
 		this(shapesForForwardChainingConnection, sailConnection, null);
 	}
 
 	private CombinedShapeSource(RepositoryConnection shapesForForwardChainingConnection,
+			SailConnection sailConnection,
+			Resource[] context) {
+		this.rdf4jShapesGraph = new ForwardChainingShapeSource(shapesForForwardChainingConnection);
+		this.baseSail = new BackwardChainingShapeSource(sailConnection);
+		this.context = context;
+	}
+
+	private CombinedShapeSource(SailConnection shapesForForwardChainingConnection,
 			SailConnection sailConnection,
 			Resource[] context) {
 		this.rdf4jShapesGraph = new ForwardChainingShapeSource(shapesForForwardChainingConnection);
@@ -109,17 +124,13 @@ public class CombinedShapeSource implements ShapeSource {
 	public Value getRdfFirst(Resource subject) {
 		assert context != null;
 		Value rdfFirst1 = rdf4jShapesGraph.getRdfFirst(subject);
-		Value rdfFirst2 = baseSail.getRdfFirst(subject);
-		return rdfFirst1 != null ? rdfFirst1 : rdfFirst2;
+		return rdfFirst1 != null ? rdfFirst1 : baseSail.getRdfFirst(subject);
 	}
 
 	public Resource getRdfRest(Resource subject) {
 		assert context != null;
-
 		Value rdfRest1 = rdf4jShapesGraph.getRdfRest(subject);
-		Value rdfRest2 = baseSail.getRdfRest(subject);
-
-		return (Resource) (rdfRest1 != null ? rdfRest1 : rdfRest2);
+		return (Resource) (rdfRest1 != null ? rdfRest1 : baseSail.getRdfRest(subject));
 	}
 
 	@Override

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.helpers;
 
@@ -79,6 +82,14 @@ public class SailConnectionWrapper
 		if (wrappedCon instanceof FederatedServiceResolverClient) {
 			((FederatedServiceResolverClient) wrappedCon).setFederatedServiceResolver(resolver);
 		}
+	}
+
+	@Override
+	public FederatedServiceResolver getFederatedServiceResolver() {
+		if (wrappedCon instanceof FederatedServiceResolverClient) {
+			return ((FederatedServiceResolverClient) wrappedCon).getFederatedServiceResolver();
+		}
+		return null;
 	}
 
 	@Override
@@ -247,8 +258,9 @@ public class SailConnectionWrapper
 
 	@Override
 	public boolean supportsConcurrentReads() {
-		if (wrappedCon instanceof ThreadSafetyAware)
+		if (wrappedCon instanceof ThreadSafetyAware) {
 			return ((ThreadSafetyAware) wrappedCon).supportsConcurrentReads();
+		}
 		return false;
 	}
 }

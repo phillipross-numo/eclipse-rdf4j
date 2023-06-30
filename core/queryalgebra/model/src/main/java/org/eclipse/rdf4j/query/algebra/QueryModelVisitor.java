@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra;
 
@@ -67,6 +70,8 @@ public interface QueryModelVisitor<X extends Exception> {
 	void meet(Filter node) throws X;
 
 	void meet(FunctionCall node) throws X;
+
+	void meet(AggregateFunctionCall node) throws X;
 
 	void meet(Group node) throws X;
 
@@ -164,6 +169,7 @@ public interface QueryModelVisitor<X extends Exception> {
 	void meet(ValueConstant node) throws X;
 
 	/**
+	 *
 	 */
 	void meet(ListMemberOperator node) throws X;
 

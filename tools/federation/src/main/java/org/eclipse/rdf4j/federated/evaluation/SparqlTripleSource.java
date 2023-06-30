@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2019 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.federated.evaluation;
 
@@ -42,15 +45,14 @@ import org.eclipse.rdf4j.repository.RepositoryResult;
 /**
  * A triple source to be used for (remote) SPARQL endpoints.
  * <p>
- *
+ * <p>
  * This triple source supports the {@link SparqlEndpointConfiguration} for defining whether ASK queries are to be used
  * for source selection.
- *
+ * <p>
  * The query result of {@link #getStatements(String, BindingSet, FilterValueExpr, QueryInfo)} is wrapped in a
  * {@link ConsumingIteration} to avoid blocking behavior..
  *
  * @author Andreas Schwarte
- *
  */
 public class SparqlTripleSource extends TripleSourceBase {
 
@@ -106,8 +108,7 @@ public class SparqlTripleSource extends TripleSourceBase {
 				applyMaxExecutionTimeUpperBound(query);
 
 				monitorRemoteRequest();
-				boolean hasStatements = query.evaluate();
-				return hasStatements;
+				return query.evaluate();
 			} catch (Throwable ex) {
 				// convert into QueryEvaluationException with additional info
 				throw ExceptionUtil.traceExceptionSourceAndRepair(endpoint, ex, "Subquery: " + queryString);
@@ -123,9 +124,7 @@ public class SparqlTripleSource extends TripleSourceBase {
 
 				monitorRemoteRequest();
 				try (TupleQueryResult qRes = query.evaluate()) {
-
-					boolean hasStatements = qRes.hasNext();
-					return hasStatements;
+					return qRes.hasNext();
 				} catch (Throwable ex) {
 					// convert into QueryEvaluationException with additional info
 					throw ExceptionUtil.traceExceptionSourceAndRepair(endpoint, ex, "Subquery: " + queryString);
@@ -154,8 +153,7 @@ public class SparqlTripleSource extends TripleSourceBase {
 				monitorRemoteRequest();
 				try (TupleQueryResult qRes = query.evaluate()) {
 
-					boolean hasStatements = qRes.hasNext();
-					return hasStatements;
+					return qRes.hasNext();
 				} catch (Throwable ex) {
 					// convert into QueryEvaluationException with additional info
 					throw ExceptionUtil.traceExceptionSourceAndRepair(endpoint, ex, "Subquery: " + queryString);
@@ -189,18 +187,26 @@ public class SparqlTripleSource extends TripleSourceBase {
 
 		return withConnection((conn, resultHolder) -> {
 			monitorRemoteRequest();
-			RepositoryResult<Statement> repoResult = conn.getStatements(subj, pred, obj,
-					queryInfo.getIncludeInferred(), contexts);
-
-			resultHolder.set(new ExceptionConvertingIteration<>(repoResult) {
-				@Override
-				protected QueryEvaluationException convert(Exception ex) {
-					if (ex instanceof QueryEvaluationException) {
-						return (QueryEvaluationException) ex;
+			RepositoryResult<Statement> repoResult = null;
+			try {
+				repoResult = conn.getStatements(subj, pred, obj,
+						queryInfo.getIncludeInferred(), contexts);
+				resultHolder.set(new ExceptionConvertingIteration<>(repoResult) {
+					@Override
+					protected QueryEvaluationException convert(Exception ex) {
+						if (ex instanceof QueryEvaluationException) {
+							return (QueryEvaluationException) ex;
+						}
+						return new QueryEvaluationException(ex);
 					}
-					return new QueryEvaluationException(ex);
+				});
+			} catch (Throwable t) {
+				if (repoResult != null) {
+					repoResult.close();
 				}
-			});
+				throw t;
+			}
+
 		});
 	}
 

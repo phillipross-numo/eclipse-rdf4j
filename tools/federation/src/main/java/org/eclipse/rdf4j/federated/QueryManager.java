@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2019 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.federated;
 
@@ -349,7 +352,7 @@ public class QueryManager {
 
 	/**
 	 * Get the prefix declarations that have to be added while considering prefixes that are already declared in the
-	 * query. The issue here is that duplicate declaration causes exceptions in Sesame
+	 * query. The issue here is that duplicate declaration causes exceptions in RDF4J.
 	 *
 	 * @param queryString
 	 * @return the prefix declarations
@@ -382,18 +385,18 @@ public class QueryManager {
 
 		HashSet<String> res = new HashSet<>();
 
-		Scanner sc = new Scanner(queryString);
-		while (true) {
-			while (sc.findInLine(prefixPattern) != null) {
-				MatchResult m = sc.match();
-				res.add(m.group(1));
+		try (Scanner sc = new Scanner(queryString)) {
+			while (true) {
+				while (sc.findInLine(prefixPattern) != null) {
+					MatchResult m = sc.match();
+					res.add(m.group(1));
+				}
+				if (!sc.hasNextLine()) {
+					break;
+				}
+				sc.nextLine();
 			}
-			if (!sc.hasNextLine()) {
-				break;
-			}
-			sc.nextLine();
 		}
-		sc.close();
 		return res;
 	}
 

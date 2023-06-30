@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.constraintcomponents;
@@ -13,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.impl.BooleanLiteral;
@@ -34,7 +38,6 @@ import org.eclipse.rdf4j.sail.shacl.ast.planNodes.TrimToTarget;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.UnBufferedPlanNode;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.UnionNode;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.Unique;
-import org.eclipse.rdf4j.sail.shacl.ast.planNodes.ValidationTuple;
 import org.eclipse.rdf4j.sail.shacl.ast.targets.EffectiveTarget;
 import org.eclipse.rdf4j.sail.shacl.wrapper.data.ConnectionsGroup;
 
@@ -66,34 +69,37 @@ public class UniqueLangConstraintComponent extends AbstractConstraintComponent {
 
 		String pathQuery1 = getTargetChain().getPath()
 				.map(p -> p.getTargetQueryFragment(effectiveTarget.getTargetVar(), value1,
-						connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider))
-				.orElseThrow(IllegalStateException::new);
+						connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider, Set.of()))
+				.orElseThrow(IllegalStateException::new)
+				.getFragment();
 
-		query += pathQuery1;
+		query += "\n" + pathQuery1;
 
 		StatementMatcher.Variable value2 = stableRandomVariableProvider.next();
 
 		String pathQuery2 = getTargetChain().getPath()
 				.map(p -> p.getTargetQueryFragment(effectiveTarget.getTargetVar(), value2,
-						connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider))
-				.orElseThrow(IllegalStateException::new);
+						connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider, Set.of()))
+				.orElseThrow(IllegalStateException::new)
+				.getFragment();
 
-		query += String.join("\n", "",
+		query += "\n" + String.join("\n", trim("",
 				"FILTER(",
 				"	EXISTS {",
 				"		" + pathQuery2,
 				"		FILTER(",
-				"			lang(?" + value2.getName() + ") != \"\" && ",
-				"			lang(?" + value1.getName() + ") != \"\" && ",
-				"			?" + value1.getName() + " != ?" + value2.getName() + " && ",
-				"			lang(?" + value1.getName() + ") = lang(?" + value2.getName() + ")",
+				"			lang(" + value2.asSparqlVariable() + ") != \"\" && ",
+				"			lang(" + value1.asSparqlVariable() + ") != \"\" && ",
+				"			" + value1.asSparqlVariable() + " != " + value2.asSparqlVariable() + " && ",
+				"			lang(" + value1.asSparqlVariable() + ") = lang(" + value2.asSparqlVariable() + ")",
 				"		)",
 				"	}",
-				")");
+				")"));
 
-		List<StatementMatcher.Variable> allTargetVariables = effectiveTarget.getAllTargetVariables();
+		var allTargetVariables = effectiveTarget.getAllTargetVariables();
 
-		return new ValidationQuery(query, allTargetVariables, null, scope, getConstraintComponent(), null, null);
+		return new ValidationQuery(getTargetChain().getNamespaces(), query, allTargetVariables, null, scope, this, null,
+				null);
 
 	}
 
@@ -130,11 +136,12 @@ public class UniqueLangConstraintComponent extends AbstractConstraintComponent {
 					validationSettings.getDataGraph(), path.get()
 							.getTargetQueryFragment(new StatementMatcher.Variable("a"),
 									new StatementMatcher.Variable("c"),
-									connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider),
+									connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider,
+									Set.of()),
 					false,
 					null,
-					(b) -> new ValidationTuple(b.getValue("a"), b.getValue("c"), scope, true,
-							validationSettings.getDataGraph())
+					BulkedExternalInnerJoin.getMapper("a", "c", scope, validationSettings.getDataGraph())
+
 			);
 
 			PlanNode nonUniqueTargetLang = new NonUniqueTargetLang(relevantTargetsWithPath);
@@ -145,7 +152,7 @@ public class UniqueLangConstraintComponent extends AbstractConstraintComponent {
 			PlanNode addedTargets = effectiveTarget.getPlanNode(connectionsGroup, validationSettings.getDataGraph(),
 					scope, false, null);
 
-			PlanNode addedByPath = path.get().getAdded(connectionsGroup, validationSettings.getDataGraph(), null);
+			PlanNode addedByPath = path.get().getAllAdded(connectionsGroup, validationSettings.getDataGraph(), null);
 
 			PlanNode innerJoin = new InnerJoin(addedTargets, addedByPath).getJoined(UnBufferedPlanNode.class);
 
@@ -156,7 +163,7 @@ public class UniqueLangConstraintComponent extends AbstractConstraintComponent {
 		PlanNode addedTargets = effectiveTarget.getPlanNode(connectionsGroup, validationSettings.getDataGraph(), scope,
 				false, null);
 
-		PlanNode addedByPath = path.get().getAdded(connectionsGroup, validationSettings.getDataGraph(), null);
+		PlanNode addedByPath = path.get().getAllAdded(connectionsGroup, validationSettings.getDataGraph(), null);
 
 		addedByPath = effectiveTarget.getTargetFilter(connectionsGroup,
 				validationSettings.getDataGraph(), Unique.getInstance(new TrimToTarget(addedByPath), false));
@@ -176,11 +183,11 @@ public class UniqueLangConstraintComponent extends AbstractConstraintComponent {
 				connectionsGroup.getBaseConnection(),
 				validationSettings.getDataGraph(), path.get()
 						.getTargetQueryFragment(new StatementMatcher.Variable("a"), new StatementMatcher.Variable("c"),
-								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider),
+								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider, Set.of()),
 				false,
 				null,
-				(b) -> new ValidationTuple(b.getValue("a"), b.getValue("c"), scope, true,
-						validationSettings.getDataGraph())
+				BulkedExternalInnerJoin.getMapper("a", "c", scope, validationSettings.getDataGraph())
+
 		);
 
 		PlanNode nonUniqueTargetLang = new NonUniqueTargetLang(relevantTargetsWithPath);
@@ -207,4 +214,10 @@ public class UniqueLangConstraintComponent extends AbstractConstraintComponent {
 	public ConstraintComponent deepClone() {
 		return new UniqueLangConstraintComponent();
 	}
+
+	@Override
+	public List<Literal> getDefaultMessage() {
+		return List.of();
+	}
+
 }

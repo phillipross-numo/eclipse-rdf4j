@@ -1,12 +1,16 @@
 /*******************************************************************************
- Copyright (c) 2018 Eclipse RDF4J contributors.
- All rights reserved. This program and the accompanying materials
- are made available under the terms of the Eclipse Distribution License v1.0
- which accompanies this distribution, and is available at
- http://www.eclipse.org/org/documents/edl-v10.php.
+ * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sparqlbuilder.examples.sparql11spec;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.rdf4j.sparqlbuilder.core.SparqlBuilder.var;
 import static org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf.iri;
 
@@ -19,8 +23,7 @@ import org.eclipse.rdf4j.sparqlbuilder.examples.BaseExamples;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPattern;
 import org.eclipse.rdf4j.sparqlbuilder.graphpattern.GraphPatterns;
 import org.eclipse.rdf4j.sparqlbuilder.rdf.Iri;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class Section13Test extends BaseExamples {
 	@Test
@@ -30,7 +33,7 @@ public class Section13Test extends BaseExamples {
 		Variable x = var("x");
 		From defaultGraph = SparqlBuilder.from(iri("http://example.org/foaf/aliceFoaf"));
 		query.prefix(foaf).select(name).from(defaultGraph).where(x.has(foaf.iri("name"), name));
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "SELECT  ?name\n"
 						+ "FROM    <http://example.org/foaf/aliceFoaf>\n"
@@ -41,7 +44,7 @@ public class Section13Test extends BaseExamples {
 	public void example_13_2_2() {
 		Dataset dataset = SparqlBuilder.dataset(SparqlBuilder.fromNamed(iri("http://example.org/alice")),
 				SparqlBuilder.fromNamed(iri("http://example.org/bob")));
-		Assert.assertThat(dataset.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(""
+		assertThat(dataset.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(""
 				+ "FROM NAMED <http://example.org/alice>\n"
 				+ "FROM NAMED <http://example.org/bob>"));
 	}
@@ -62,7 +65,7 @@ public class Section13Test extends BaseExamples {
 				.select(who, g, mbox)
 				.from(defaultGraph, aliceGraph, bobGraph)
 				.where(g.has(dc.iri("publisher"), who), namedGraph);
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "PREFIX dc: <http://purl.org/dc/elements/1.1/>\n"
 						+ "\n"
@@ -91,7 +94,7 @@ public class Section13Test extends BaseExamples {
 						.and(x.has(foaf.iri("mbox"), iri("mailto:bob@work.example")),
 								x.has(foaf.iri("nick"), bobNick))
 						.from(src));
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "\n"
 						+ "SELECT ?src ?bobNick\n"
@@ -119,7 +122,7 @@ public class Section13Test extends BaseExamples {
 						.and(x.has(foaf.iri("mbox"), iri("mailto:bob@work.example")),
 								x.has(foaf.iri("nick"), nick))
 						.from(data.iri("bobFoaf")));
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "PREFIX data: <http://example.org/foaf/>\n"
 						+ "\n"
@@ -158,7 +161,7 @@ public class Section13Test extends BaseExamples {
 				.from(SparqlBuilder.fromNamed(iri("http://example.org/foaf/aliceFoaf")),
 						SparqlBuilder.fromNamed(iri("http://example.org/foaf/bobFoaf")))
 				.where(aliceFoafGraph, ppdGraph);
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX  data:  <http://example.org/foaf/>\n"
 						+ "PREFIX  foaf:  <http://xmlns.com/foaf/0.1/>\n"
 						+ "PREFIX  rdfs:  <http://www.w3.org/2000/01/rdf-schema#>\n"
@@ -198,7 +201,7 @@ public class Section13Test extends BaseExamples {
 				.where(g.has(dc.iri("publisher"), name).andHas(dc.iri("date"), date),
 						GraphPatterns.and(person.has(foaf.iri("name"), name)
 								.andHas(foaf.iri("mbox"), mbox)).from(g));
-		Assert.assertThat(query.getQueryString(), stringEqualsIgnoreCaseAndWhitespace(
+		assertThat(query.getQueryString()).is(stringEqualsIgnoreCaseAndWhitespace(
 				"PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
 						+ "PREFIX dc:   <http://purl.org/dc/elements/1.1/>\n"
 						+ "\n"

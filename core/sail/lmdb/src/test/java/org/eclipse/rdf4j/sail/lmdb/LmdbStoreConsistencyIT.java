@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.lmdb;
 
@@ -28,37 +31,31 @@ import org.eclipse.rdf4j.repository.util.RDFInserter;
 import org.eclipse.rdf4j.repository.util.RDFLoader;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.sail.lmdb.config.LmdbStoreConfig;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Integration tests for checking Lmdb Store index consistency.
- *
  */
 public class LmdbStoreConsistencyIT {
+
 	private static final Logger logger = LoggerFactory.getLogger(LmdbStoreConsistencyIT.class);
 
 	/*-----------*
 	 * Variables *
 	 *-----------*/
 
-	@Rule
-	public TemporaryFolder tempDir = new TemporaryFolder();
-
 	/*---------*
 	 * Methods *
 	 *---------*/
 
 	@Test
-	public void testSES1867IndexCorruption() throws Exception {
+	public void testSES1867IndexCorruption(@TempDir File dataDir) throws Exception {
 		ValueFactory vf = SimpleValueFactory.getInstance();
 		IRI oldContext = vf.createIRI("http://example.org/oldContext");
 		IRI newContext = vf.createIRI("http://example.org/newContext");
-
-		File dataDir = tempDir.newFolder();
 
 		Repository repo = new SailRepository(new LmdbStore(dataDir, new LmdbStoreConfig("spoc,psoc")));
 
@@ -100,7 +97,6 @@ public class LmdbStoreConsistencyIT {
 			// Step 3: check whether oldContext is actually empty
 			List<Statement> stmts = Iterations.asList(conn.getStatements(null, null, null, false, oldContext));
 			logger.info("Not deleted statements: " + stmts.size());
-
 		}
 		repo.shutDown();
 

@@ -1,16 +1,20 @@
 /*******************************************************************************
  * Copyright (c) 2016 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.inferencer.fc;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.util.stream.Stream;
 
 import org.eclipse.rdf4j.common.transaction.IsolationLevel;
@@ -23,18 +27,15 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.eclipse.rdf4j.testsuite.repository.RDFSchemaRepositoryConnectionTest;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class SchemaCachingRDFSInferencerRDFSchemaMemoryRepositoryConnectionTest
 		extends RDFSchemaRepositoryConnectionTest {
 
-	public SchemaCachingRDFSInferencerRDFSchemaMemoryRepositoryConnectionTest(IsolationLevel level) {
-		super(level);
-	}
-
 	@Override
-	protected Repository createRepository() {
+	protected Repository createRepository(File dataDir) {
 		SchemaCachingRDFSInferencer sail = new SchemaCachingRDFSInferencer(new MemoryStore(), true);
 		sail.setAddInferredStatementsToDefaultContext(false);
 
@@ -42,35 +43,41 @@ public class SchemaCachingRDFSInferencerRDFSchemaMemoryRepositoryConnectionTest
 	}
 
 	@Override
-	@Test
-	@Ignore
-	public void testQueryDefaultGraph() throws Exception {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	@Disabled
+	public void testQueryDefaultGraph(IsolationLevel level) throws Exception {
 		// ignore
 	}
 
 	@Override
-	@Test
-	@Ignore
-	public void testDeleteDefaultGraph() throws Exception {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	@Disabled
+	public void testDeleteDefaultGraph(IsolationLevel level) throws Exception {
 		// ignore
 	}
 
 	@Override
-	@Test
-	@Ignore
-	public void testContextStatementsNotDuplicated() throws Exception {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	@Disabled
+	public void testContextStatementsNotDuplicated(IsolationLevel level) throws Exception {
 		// ignore
 	}
 
 	@Override
-	@Test
-	@Ignore
-	public void testContextStatementsNotDuplicated2() throws Exception {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	@Disabled
+	public void testContextStatementsNotDuplicated2(IsolationLevel level) throws Exception {
 		// ignore
 	}
 
-	@Test
-	public void testContextTbox() {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	public void testContextTbox(IsolationLevel level) {
+		setupTest(level);
 
 //		Man subClassOf Human g1
 //		Human subClassOf Animal g2
@@ -107,8 +114,10 @@ public class SchemaCachingRDFSInferencerRDFSchemaMemoryRepositoryConnectionTest
 
 	}
 
-	@Test
-	public void testUpdateInsertData() {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	public void testUpdateInsertData(IsolationLevel level) {
+		setupTest(level);
 
 		SailRepository sail = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
 		try (SailRepositoryConnection connection = sail.getConnection()) {
@@ -127,8 +136,10 @@ public class SchemaCachingRDFSInferencerRDFSchemaMemoryRepositoryConnectionTest
 
 	}
 
-	@Test
-	public void testUpdateInsert() {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	public void testUpdateInsert(IsolationLevel level) {
+		setupTest(level);
 
 		SailRepository sail = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
 		try (SailRepositoryConnection connection = sail.getConnection()) {
@@ -148,8 +159,10 @@ public class SchemaCachingRDFSInferencerRDFSchemaMemoryRepositoryConnectionTest
 
 	}
 
-	@Test
-	public void testInsert() {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	public void testInsert(IsolationLevel level) {
+		setupTest(level);
 
 		SailRepository sail = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
 		try (SailRepositoryConnection connection = sail.getConnection()) {
@@ -169,8 +182,10 @@ public class SchemaCachingRDFSInferencerRDFSchemaMemoryRepositoryConnectionTest
 
 	}
 
-	@Test
-	public void testUpdateRemove() {
+	@ParameterizedTest
+	@MethodSource("parameters")
+	public void testUpdateRemove(IsolationLevel level) {
+		setupTest(level);
 
 		SailRepository sail = new SailRepository(new SchemaCachingRDFSInferencer(new MemoryStore()));
 		try (SailRepositoryConnection connection = sail.getConnection()) {

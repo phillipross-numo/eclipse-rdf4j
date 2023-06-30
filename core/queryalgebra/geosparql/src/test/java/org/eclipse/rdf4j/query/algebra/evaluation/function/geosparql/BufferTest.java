@@ -1,14 +1,18 @@
 /*******************************************************************************
  * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.query.algebra.evaluation.function.geosparql;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
@@ -19,7 +23,7 @@ import org.eclipse.rdf4j.model.vocabulary.FOAF;
 import org.eclipse.rdf4j.model.vocabulary.GEO;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author jeen
@@ -60,13 +64,15 @@ public class BufferTest {
 		assertThat(result.getLabel()).startsWith("POLYGON ((23.708505");
 	}
 
-	@Test(expected = ValueExprEvaluationException.class)
+	@Test
 	public void testEvaluateWithInvalidRadius() {
-		buffer.evaluate(f, point, f.createLiteral("foobar", XSD.DECIMAL), unit);
+		assertThrows(ValueExprEvaluationException.class,
+				() -> buffer.evaluate(f, point, f.createLiteral("foobar", XSD.DECIMAL), unit));
 	}
 
-	@Test(expected = ValueExprEvaluationException.class)
+	@Test
 	public void testEvaluateWithInvalidUnit() {
-		buffer.evaluate(f, point, f.createLiteral(1.0), FOAF.PERSON);
+		assertThrows(ValueExprEvaluationException.class,
+				() -> buffer.evaluate(f, point, f.createLiteral(1.0), FOAF.PERSON));
 	}
 }

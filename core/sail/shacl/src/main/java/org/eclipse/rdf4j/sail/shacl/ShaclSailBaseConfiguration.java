@@ -1,11 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Distribution License v1.0
- *  which accompanies this distribution, and is available at
- *  http://www.eclipse.org/org/documents/edl-v10.php.
- ******************************************************************************/
-
+ *
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ *******************************************************************************/
 package org.eclipse.rdf4j.sail.shacl;
 
 import java.util.Set;
@@ -244,7 +246,7 @@ abstract class ShaclSailBaseConfiguration extends NotifyingSailWrapper {
 	/**
 	 * Support for Eclipse RDF4J SHACL Extensions (http://rdf4j.org/shacl-extensions#). Enabling this currently enables
 	 * support for rsx:targetShape.
-	 *
+	 * <p>
 	 * EXPERIMENTAL!
 	 *
 	 * @return true if enabled
@@ -257,7 +259,7 @@ abstract class ShaclSailBaseConfiguration extends NotifyingSailWrapper {
 	/**
 	 * Support for Eclipse RDF4J SHACL Extensions (http://rdf4j.org/shacl-extensions#). Enabling this currently enables
 	 * support for rsx:targetShape.
-	 *
+	 * <p>
 	 * EXPERIMENTAL!
 	 *
 	 * @param eclipseRdf4jShaclExtensions true to enable (default: false)
@@ -270,7 +272,7 @@ abstract class ShaclSailBaseConfiguration extends NotifyingSailWrapper {
 	/**
 	 * Support for DASH Data Shapes Vocabulary Unofficial Draft (http://datashapes.org/dash). Currently this enables
 	 * support for dash:hasValueIn, dash:AllObjectsTarget and dash:AllSubjectsTarget.
-	 *
+	 * <p>
 	 * EXPERIMENTAL!
 	 *
 	 * @return true if enabled
@@ -283,7 +285,7 @@ abstract class ShaclSailBaseConfiguration extends NotifyingSailWrapper {
 	/**
 	 * Support for DASH Data Shapes Vocabulary Unofficial Draft (http://datashapes.org/dash). Currently this enables
 	 * support for dash:hasValueIn, dash:AllObjectsTarget and and dash:AllSubjectsTarget.
-	 *
+	 * <p>
 	 * EXPERIMENTAL!
 	 *
 	 * @param dashDataShapes true to enable (default: false)
@@ -317,7 +319,6 @@ abstract class ShaclSailBaseConfiguration extends NotifyingSailWrapper {
 	}
 
 	/**
-	 *
 	 * @return the effective limit per constraint with an upper bound of the total limit
 	 */
 	public long getEffectiveValidationResultsLimitPerConstraint() {

@@ -1,11 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2022 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.lucene;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Properties;
 
@@ -14,9 +20,8 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.algebra.Var;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.spatial4j.context.SpatialContext;
 import org.locationtech.spatial4j.shape.Point;
 
@@ -66,7 +71,7 @@ public class LangSpecTest {
 		}
 
 		@Override
-		protected Iterable<? extends DocumentScore> query(Resource subject, String q, IRI property, boolean highlight) {
+		protected Iterable<? extends DocumentScore> query(Resource subject, QuerySpec spec) {
 			throw new RuntimeException("not implemented");
 		}
 
@@ -121,7 +126,7 @@ public class LangSpecTest {
 	SearchIndex index;
 	Properties prop;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		index = new SearchIndexImpl();
 		prop = new Properties();
@@ -133,9 +138,9 @@ public class LangSpecTest {
 
 		// test that without setting the LuceneSail.INDEXEDLANG property, the accept method is still
 		// working as intended
-		Assert.assertTrue(index.accept(VF.createLiteral("my literal")));
-		Assert.assertTrue(index.accept(VF.createLiteral("my literal", "en")));
-		Assert.assertTrue(index.accept(VF.createLiteral("mon litteral", "fr")));
+		assertTrue(index.accept(VF.createLiteral("my literal")));
+		assertTrue(index.accept(VF.createLiteral("my literal", "en")));
+		assertTrue(index.accept(VF.createLiteral("mon litteral", "fr")));
 	}
 
 	@Test
@@ -144,9 +149,9 @@ public class LangSpecTest {
 		index.initialize(prop);
 
 		// test that with the LuceneSail.INDEXEDLANG property, we are only accepting literals of the right language
-		Assert.assertFalse(index.accept(VF.createLiteral("my literal")));
-		Assert.assertFalse(index.accept(VF.createLiteral("my literal", "en")));
-		Assert.assertTrue(index.accept(VF.createLiteral("mon litteral", "fr")));
+		assertFalse(index.accept(VF.createLiteral("my literal")));
+		assertFalse(index.accept(VF.createLiteral("my literal", "en")));
+		assertTrue(index.accept(VF.createLiteral("mon litteral", "fr")));
 	}
 
 	@Test
@@ -155,9 +160,9 @@ public class LangSpecTest {
 		index.initialize(prop);
 
 		// test that with the LuceneSail.INDEXEDLANG property, we are only accepting literals of the right languages
-		Assert.assertFalse(index.accept(VF.createLiteral("my literal")));
-		Assert.assertTrue(index.accept(VF.createLiteral("my literal", "en")));
-		Assert.assertTrue(index.accept(VF.createLiteral("mon litteral", "fr")));
-		Assert.assertFalse(index.accept(VF.createLiteral("mi literal", "es")));
+		assertFalse(index.accept(VF.createLiteral("my literal")));
+		assertTrue(index.accept(VF.createLiteral("my literal", "en")));
+		assertTrue(index.accept(VF.createLiteral("mon litteral", "fr")));
+		assertFalse(index.accept(VF.createLiteral("mi literal", "es")));
 	}
 }

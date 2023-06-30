@@ -1,13 +1,17 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.spring.dao.support;
 
+import static org.eclipse.rdf4j.sparqlbuilder.rdf.Rdf.iri;
 import static org.eclipse.rdf4j.spring.util.QueryResultUtils.getIRI;
 import static org.eclipse.rdf4j.spring.util.QueryResultUtils.getIRIOptional;
 
@@ -33,8 +37,8 @@ import org.eclipse.rdf4j.spring.dao.support.opbuilder.TupleQueryEvaluationBuilde
 import org.eclipse.rdf4j.spring.support.RDF4JTemplate;
 
 /**
- * @since 4.0.0
  * @author Florian Kleedorfer
+ * @since 4.0.0
  */
 public class RelationMapBuilder {
 	public static final Variable _relSubject = SparqlBuilder.var("rel_subject");
@@ -53,6 +57,11 @@ public class RelationMapBuilder {
 	public RelationMapBuilder(RDF4JTemplate rdf4JTemplate, RdfPredicate predicate) {
 		this.rdf4JTemplate = rdf4JTemplate;
 		this.predicate = predicate;
+	}
+
+	public RelationMapBuilder(RDF4JTemplate rdf4JTemplate, IRI predicate) {
+		this.rdf4JTemplate = rdf4JTemplate;
+		this.predicate = iri(predicate);
 	}
 
 	/**
@@ -80,7 +89,6 @@ public class RelationMapBuilder {
 	/**
 	 * Indicates that the builder should use the triple's object for the key in the resulting {@link Map} instead of the
 	 * subject (the default).
-	 *
 	 */
 	public RelationMapBuilder useRelationObjectAsKey() {
 		this.isSubjectKeyed = false;
@@ -91,7 +99,6 @@ public class RelationMapBuilder {
 	 * Builds a One-to-One Map using the configuration of this builder. Throws an Exception if more than one values are
 	 * found for a given key. If {@link #isRelationOptional} is <code>true
 	 * </code> and no triple is found for the key, {@link #NOTHING} is set as the value.
-	 *
 	 */
 	public Map<IRI, IRI> buildOneToOne() {
 		return makeTupleQueryBuilder()
@@ -101,7 +108,6 @@ public class RelationMapBuilder {
 
 	/**
 	 * Builds a One-to-Many Map using the configuration of this builder.
-	 *
 	 */
 	public Map<IRI, Set<IRI>> buildOneToMany() {
 		return makeTupleQueryBuilder()

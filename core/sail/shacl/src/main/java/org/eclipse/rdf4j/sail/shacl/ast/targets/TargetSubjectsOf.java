@@ -1,26 +1,32 @@
 /*******************************************************************************
  * Copyright (c) 2020 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl.ast.targets;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
 import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.shacl.ast.SparqlFragment;
 import org.eclipse.rdf4j.sail.shacl.ast.StatementMatcher;
 import org.eclipse.rdf4j.sail.shacl.ast.constraintcomponents.ConstraintComponent;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.EmptyNode;
-import org.eclipse.rdf4j.sail.shacl.ast.planNodes.ExternalFilterByPredicate;
+import org.eclipse.rdf4j.sail.shacl.ast.planNodes.FilterByPredicate;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.PlanNode;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.UnionNode;
 import org.eclipse.rdf4j.sail.shacl.ast.planNodes.Unique;
@@ -69,55 +75,36 @@ public class TargetSubjectsOf extends Target {
 	}
 
 	@Override
-	public String getQueryFragment(String subjectVariable, String objectVariable,
-			RdfsSubClassOfReasoner rdfsSubClassOfReasoner,
-			StatementMatcher.StableRandomVariableProvider stableRandomVariableProvider) {
-		String tempVar = stableRandomVariableProvider.next().asSparqlVariable();
-
-		return targetSubjectsOf.stream()
-				.map(target -> "\n{ BIND(<" + target + "> as " + tempVar + ") \n " + subjectVariable + " "
-						+ tempVar + " " + objectVariable
-						+ ". } \n")
-				.reduce((a, b) -> a + " UNION " + b)
-				.get();
-	}
-
-	@Override
 	public PlanNode getTargetFilter(ConnectionsGroup connectionsGroup, Resource[] dataGraph,
 			PlanNode parent) {
-		return new ExternalFilterByPredicate(connectionsGroup.getBaseConnection(), targetSubjectsOf, parent,
-				ExternalFilterByPredicate.On.Subject, dataGraph);
+		return new FilterByPredicate(connectionsGroup.getBaseConnection(), targetSubjectsOf, parent,
+				FilterByPredicate.On.Subject, dataGraph);
 	}
 
 	@Override
-	public Stream<StatementMatcher> getStatementMatcher(StatementMatcher.Variable subject,
-			StatementMatcher.Variable object,
-			RdfsSubClassOfReasoner rdfsSubClassOfReasoner) {
+	public SparqlFragment getTargetQueryFragment(StatementMatcher.Variable subject, StatementMatcher.Variable object,
+			RdfsSubClassOfReasoner rdfsSubClassOfReasoner,
+			StatementMatcher.StableRandomVariableProvider stableRandomVariableProvider, Set<String> inheritedVarNames) {
 		assert (subject == null);
 
-		return targetSubjectsOf.stream()
+		StatementMatcher.Variable tempVar = stableRandomVariableProvider.next();
+
+		List<StatementMatcher> statementMatchers = targetSubjectsOf.stream()
 				.map(t -> new StatementMatcher(
 						object,
 						new StatementMatcher.Variable(t),
-						null
+						tempVar, this, Set.of())
 				)
-				);
-	}
-
-	@Override
-	public String getTargetQueryFragment(StatementMatcher.Variable subject, StatementMatcher.Variable object,
-			RdfsSubClassOfReasoner rdfsSubClassOfReasoner,
-			StatementMatcher.StableRandomVariableProvider stableRandomVariableProvider) {
-		assert (subject == null);
-
-		String tempVar = stableRandomVariableProvider.next().asSparqlVariable();
+				.collect(Collectors.toList());
 
 		if (targetSubjectsOf.size() == 1) {
 
-			return targetSubjectsOf.stream()
-					.map(t -> "?" + object.getName() + " <" + t + "> " + tempVar + " .")
+			String queryFragment = targetSubjectsOf.stream()
+					.map(t -> object.asSparqlVariable() + " <" + t + "> " + tempVar.asSparqlVariable() + " .")
 					.reduce((a, b) -> a + "\n" + b)
 					.orElse("");
+
+			return SparqlFragment.bgp(List.of(), queryFragment, statementMatchers);
 
 		} else {
 
@@ -126,10 +113,21 @@ public class TargetSubjectsOf extends Target {
 					.reduce((a, b) -> a + " , " + b)
 					.orElse("");
 
-			return "?" + object.getName() + " ?predicatefjhfuewhw " + tempVar + " .\n" +
-					"FILTER(?predicatefjhfuewhw in (" + in + ")) \n";
+			StatementMatcher.Variable tempVarForIn = stableRandomVariableProvider.next();
+
+			String queryFragment = object.asSparqlVariable() + " " + tempVarForIn.asSparqlVariable()
+					+ tempVar.asSparqlVariable() + " .\n" +
+					"FILTER(" + tempVarForIn.asSparqlVariable() + " in (" + in + "))";
+
+			return SparqlFragment.bgp(List.of(), queryFragment, statementMatchers);
+
 		}
 
+	}
+
+	@Override
+	public Set<Namespace> getNamespaces() {
+		return Set.of();
 	}
 
 	@Override

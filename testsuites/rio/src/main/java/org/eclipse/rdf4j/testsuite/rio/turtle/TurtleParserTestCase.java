@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015 Eclipse RDF4J contributors, Aduna, and others.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.testsuite.rio.turtle;
 
@@ -194,7 +197,7 @@ public abstract class TurtleParserTestCase {
 			String nextBaseUrl = testBaseUrl + nextTestFile;
 
 			// if (nextTestName.contains("CARRIAGE_RETURN")) {
-			// // FIXME: Sesame seems not to preserve the CARRIAGE_RETURN character
+			// // FIXME: RDF4J seems not to preserve the CARRIAGE_RETURN character
 			// // right now
 			// System.err.println("Ignoring Turtle Positive Parser Eval Test: " + nextInputURL);
 			// continue;

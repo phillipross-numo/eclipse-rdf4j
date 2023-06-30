@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2019 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 package org.eclipse.rdf4j.sail.shacl.ast.constraintcomponents;
 
@@ -14,11 +17,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.vocabulary.SHACL;
-import org.eclipse.rdf4j.sail.shacl.ShaclSail;
 import org.eclipse.rdf4j.sail.shacl.SourceConstraintComponent;
 import org.eclipse.rdf4j.sail.shacl.ValidationSettings;
 import org.eclipse.rdf4j.sail.shacl.ast.Cache;
@@ -51,7 +54,8 @@ public class QualifiedMaxCountConstraintComponent extends AbstractConstraintComp
 	Long qualifiedMaxCount;
 
 	public QualifiedMaxCountConstraintComponent(Resource id, ShapeSource shapeSource,
-			Cache cache, ShaclSail shaclSail, Boolean qualifiedValueShapesDisjoint, Long qualifiedMaxCount) {
+			Shape.ParseSettings parseSettings, Cache cache, Boolean qualifiedValueShapesDisjoint,
+			Long qualifiedMaxCount) {
 		super(id);
 
 		ShaclProperties p = new ShaclProperties(id, shapeSource);
@@ -60,9 +64,9 @@ public class QualifiedMaxCountConstraintComponent extends AbstractConstraintComp
 		this.qualifiedMaxCount = qualifiedMaxCount;
 
 		if (p.getType() == SHACL.NODE_SHAPE) {
-			qualifiedValueShape = NodeShape.getInstance(p, shapeSource, cache, shaclSail);
+			qualifiedValueShape = NodeShape.getInstance(p, shapeSource, parseSettings, cache);
 		} else if (p.getType() == SHACL.PROPERTY_SHAPE) {
-			qualifiedValueShape = PropertyShape.getInstance(p, shapeSource, cache, shaclSail);
+			qualifiedValueShape = PropertyShape.getInstance(p, shapeSource, parseSettings, cache);
 		} else {
 			throw new IllegalStateException("Unknown shape type for " + p.getId());
 		}
@@ -149,10 +153,12 @@ public class QualifiedMaxCountConstraintComponent extends AbstractConstraintComp
 
 		PlanNodeProvider planNodeProvider = () -> {
 
-			PlanNode target = getAllTargetsPlan(connectionsGroup, validationSettings.getDataGraph(), scope,
-					stableRandomVariableProvider);
+			PlanNode target;
 
-			if (overrideTargetNode != null) {
+			if (overrideTargetNode == null) {
+				target = getAllTargetsPlan(connectionsGroup, validationSettings.getDataGraph(), scope,
+						stableRandomVariableProvider);
+			} else {
 				target = getTargetChain()
 						.getEffectiveTarget(scope, connectionsGroup.getRdfsSubClassOfReasoner(),
 								stableRandomVariableProvider)
@@ -170,9 +176,8 @@ public class QualifiedMaxCountConstraintComponent extends AbstractConstraintComp
 							.get()
 							.getTargetQueryFragment(new StatementMatcher.Variable("a"),
 									new StatementMatcher.Variable("c"),
-									connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider),
-					false,
-					null,
+									connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider,
+									Set.of()),
 					(b) -> new ValidationTuple(b.getValue("a"), b.getValue("c"), scope, true,
 							validationSettings.getDataGraph())
 			);
@@ -193,10 +198,12 @@ public class QualifiedMaxCountConstraintComponent extends AbstractConstraintComp
 
 		PlanNode invalid = Unique.getInstance(planNode, false);
 
-		PlanNode allTargetsPlan = getAllTargetsPlan(connectionsGroup, validationSettings.getDataGraph(), scope,
-				stableRandomVariableProvider);
+		PlanNode allTargetsPlan;
 
-		if (overrideTargetNode != null) {
+		if (overrideTargetNode == null) {
+			allTargetsPlan = getAllTargetsPlan(connectionsGroup, validationSettings.getDataGraph(), scope,
+					stableRandomVariableProvider);
+		} else {
 			allTargetsPlan = getTargetChain()
 					.getEffectiveTarget(scope, connectionsGroup.getRdfsSubClassOfReasoner(),
 							stableRandomVariableProvider)
@@ -213,9 +220,7 @@ public class QualifiedMaxCountConstraintComponent extends AbstractConstraintComp
 				validationSettings.getDataGraph(), getTargetChain().getPath()
 						.get()
 						.getTargetQueryFragment(new StatementMatcher.Variable("a"), new StatementMatcher.Variable("c"),
-								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider),
-				false,
-				null,
+								connectionsGroup.getRdfsSubClassOfReasoner(), stableRandomVariableProvider, Set.of()),
 				(b) -> new ValidationTuple(b.getValue("a"), b.getValue("c"), scope, true,
 						validationSettings.getDataGraph())
 		);
@@ -254,4 +259,10 @@ public class QualifiedMaxCountConstraintComponent extends AbstractConstraintComp
 			StatementMatcher.StableRandomVariableProvider stableRandomVariableProvider) {
 		return true;
 	}
+
+	@Override
+	public List<Literal> getDefaultMessage() {
+		return List.of();
+	}
+
 }

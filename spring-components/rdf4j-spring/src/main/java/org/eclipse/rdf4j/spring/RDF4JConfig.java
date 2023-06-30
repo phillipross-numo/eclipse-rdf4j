@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2021 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.spring;
@@ -11,6 +14,7 @@ package org.eclipse.rdf4j.spring;
 import java.lang.invoke.MethodHandles;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.eclipse.rdf4j.common.annotation.Experimental;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.spring.operationcache.CachingOperationInstantiator;
@@ -38,9 +42,10 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
- * @since 4.0.0
  * @author Florian Kleedorfer
+ * @since 4.0.0
  */
+@Experimental
 @Configuration
 @EnableTransactionManagement
 public class RDF4JConfig {

@@ -1,9 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2018 Eclipse RDF4J contributors.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Distribution License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
 package org.eclipse.rdf4j.sail.shacl;
@@ -112,17 +115,6 @@ public class Utils {
 		ShaclSail sail = new ShaclSail(baseSail);
 		Utils.loadShapeData(sail, shaclFileName);
 		return sail;
-	}
-
-	public static SailRepository getInitializedShaclRepository(URL resourceName) {
-		assert resourceName.toString().endsWith(".trig") : "Not a RDF Trig file: " + resourceName;
-		SailRepository repo = new SailRepository(new ShaclSail(new MemoryStore()));
-		try {
-			Utils.loadShapeData(repo, resourceName);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		return repo;
 	}
 
 	public static SailRepository getSailRepository(URL resourceName, RDFFormat format) {
